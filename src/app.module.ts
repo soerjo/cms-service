@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { WinstonModule } from 'nest-winston';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { MetricsModule } from './modules/metrics/metrics.module.js';
@@ -37,6 +38,7 @@ import { InterServiceHttpClientModule } from './common/http-client/http-client.m
       }),
     }),
     PrismaModule,
+    ScheduleModule.forRoot(),
     JwtAuthModule,
     HealthModule,
     MetricsModule,

@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { ContentService } from './content.service.js';
 import { CreateContentEntryDto } from './dto/create-content-entry.dto.js';
+import { PublishScheduleDto } from './dto/publish-schedule.dto.js';
 import {
   UpdateContentEntryDto,
   UpdateContentTagsDto,
@@ -83,9 +84,24 @@ export class ContentController {
   }
 
   @Post(':id/publish')
-  @ApiOperation({ summary: 'Publish content entry' })
-  publish(@Param('id') id: string, @CurrentUser() user: AuthUser) {
-    return this.contentService.publish(id, user.id);
+  @ApiOperation({
+    summary:
+      'Publish content entry (or schedule it when scheduledAt is in the future)',
+  })
+  publish(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto?: PublishScheduleDto,
+  ) {
+    return this.contentService.publish(id, user.id, {
+      scheduledAt: dto?.scheduledAt ? new Date(dto.scheduledAt) : undefined,
+    });
+  }
+
+  @Post(':id/publish/cancel')
+  @ApiOperation({ summary: 'Cancel a scheduled publish (revert to DRAFT)' })
+  cancelSchedule(@Param('id') id: string) {
+    return this.contentService.cancelSchedule(id);
   }
 
   @Post(':id/unpublish')

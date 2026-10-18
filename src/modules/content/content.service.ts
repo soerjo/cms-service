@@ -90,9 +90,19 @@ export class ContentService {
     return this.contentRepo.update(id, mergedData, latestVer + 1, userId);
   }
 
-  async publish(id: string, userId: string) {
+  async publish(id: string, userId: string, opts?: { scheduledAt?: Date }) {
     await this.contentRepo.findById(id);
+    const scheduledAt = opts?.scheduledAt;
+    if (scheduledAt && scheduledAt.getTime() > Date.now()) {
+      // Future date -> SCHEDULED; scheduler will flip to PUBLISHED when due.
+      return this.contentRepo.schedulePublish(id, scheduledAt, userId);
+    }
     return this.contentRepo.updateStatus(id, ContentStatus.PUBLISHED, userId);
+  }
+
+  async cancelSchedule(id: string) {
+    await this.contentRepo.findById(id);
+    return this.contentRepo.cancelScheduledPublish(id);
   }
 
   async unpublish(id: string) {
