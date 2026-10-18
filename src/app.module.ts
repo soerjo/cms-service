@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { WinstonModule } from 'nest-winston';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { MetricsModule } from './modules/metrics/metrics.module.js';
@@ -17,9 +18,11 @@ import { MediaModule } from './modules/media/media.module.js';
 import { DeliveryModule } from './modules/delivery/delivery.module.js';
 import { loggerConfig } from './config/logger.config.js';
 import { validate } from './config/env.validation.js';
+import { InterServiceHttpClientModule } from './common/http-client/http-client.module.js';
 
 @Module({
   imports: [
+    InterServiceHttpClientModule,
     ConfigModule.forRoot({ isGlobal: true, validate }),
     WinstonModule.forRoot(loggerConfig),
     ThrottlerModule.forRootAsync({
@@ -35,6 +38,7 @@ import { validate } from './config/env.validation.js';
       }),
     }),
     PrismaModule,
+    ScheduleModule.forRoot(),
     JwtAuthModule,
     HealthModule,
     MetricsModule,

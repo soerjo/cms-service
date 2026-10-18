@@ -134,6 +134,35 @@ export class ContentRepository {
     });
   }
 
+  async schedulePublish(id: string, scheduledAt: Date, userId: string) {
+    return this.prisma.contentEntry.update({
+      where: { id },
+      data: {
+        status: ContentStatus.SCHEDULED,
+        scheduledPublishAt: scheduledAt,
+        publishedById: userId,
+      },
+      include: {
+        contentType: true,
+        tags: { include: { tag: true } },
+      },
+    });
+  }
+
+  async cancelScheduledPublish(id: string) {
+    return this.prisma.contentEntry.update({
+      where: { id },
+      data: {
+        status: ContentStatus.DRAFT,
+        scheduledPublishAt: null,
+      },
+      include: {
+        contentType: true,
+        tags: { include: { tag: true } },
+      },
+    });
+  }
+
   async getVersions(entryId: string) {
     await this.findById(entryId);
     return this.prisma.contentVersion.findMany({
