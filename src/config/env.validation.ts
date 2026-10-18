@@ -63,6 +63,14 @@ class EnvironmentVariables {
   @IsNumber()
   @IsOptional()
   THROTTLE_LIMIT: number = 10;
+  // --- UMS JWKS integration ---
+  @IsString()
+  @IsOptional()
+  UMS_JWKS_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  UMS_JWKS_CACHE_TTL_SECONDS?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -75,15 +83,18 @@ export function validate(config: Record<string, unknown>) {
     throw new Error(errors.toString());
   }
 
-  // Validate UMS public key configuration
-  try {
-    loadUmsPublicKey(
-      validated.UMS_JWT_PUBLIC_KEY,
-      validated.UMS_JWT_PUBLIC_KEY_PATH,
-    );
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new Error(`Configuration validation error: ${message}`);
+  // Validate UMS public key configuration ONLY when JWKS URL is not provided.
+  // (JWKS is the primary verification source; static key is the offline fallback.)
+  if (!validated.UMS_JWKS_URL) {
+    try {
+      loadUmsPublicKey(
+        validated.UMS_JWT_PUBLIC_KEY,
+        validated.UMS_JWT_PUBLIC_KEY_PATH,
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new Error(`Configuration validation error: ${message}`);
+    }
   }
 
   return validated;
