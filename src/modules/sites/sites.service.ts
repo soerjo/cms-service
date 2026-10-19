@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateSiteDto } from './dto/create-site.dto.js';
 import { UpdateSiteDto } from './dto/update-site.dto.js';
 import { TemplateSeederService } from './template-seeder.service.js';
-import { SiteStatus, type Prisma } from '@prisma/client';
+import { SiteStatus, FormSubmissionStatus, type Prisma } from '@prisma/client';
 import type { AuthUser } from '../../common/interfaces/auth-user.interface.js';
 
 @Injectable()
@@ -209,6 +209,79 @@ export class SitesService {
     return this.prisma.siteMember.findMany({
       where: { siteId: site.id },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findSiteSubmissions(
+    key: string,
+    query?: {
+      formKey?: string;
+      status?: FormSubmissionStatus;
+      page?: number;
+      limit?: number;
+    },
+  ) {
+    const site = await this.findSiteByKey(key);
+    const page = query?.page && query.page > 0 ? query.page : 1;
+    const limit = query?.limit && query.limit > 0 ? query.limit : 20;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.FormSubmissionWhereInput = {
+      siteId: site.id,
+    };
+
+    if (query?.formKey) {
+      where.formKey = query.formKey;
+    }
+
+    if (query?.status) {
+      where.status = query.status;
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.formSubmission.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.formSubmission.count({ where }),
+    ]);
+
+    return {
+      items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async updateSubmissionStatus(
+    key: string,
+    submissionId: string,
+    status: FormSubmissionStatus,
+  ) {
+    const site = await this.findSiteByKey(key);
+
+    const submission = await this.prisma.formSubmission.findFirst({
+      where: { id: submissionId, siteId: site.id },
+    });
+
+    if (!submission) {
+      throw new NotFoundException(
+        `Form submission with ID '${submissionId}' not found on site '${site.key}'`,
+      );
+    }
+
+    return this.prisma.formSubmission.update({
+      where: { id: submissionId },
+      data: {
+        status,
+        isSpam: status === FormSubmissionStatus.SPAM,
+      },
     });
   }
 }

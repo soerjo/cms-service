@@ -11,6 +11,7 @@ import {
   ContentStatus,
   PageStatus,
   SiteStatus,
+  FormSubmissionStatus,
   type Site,
 } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
@@ -234,6 +235,32 @@ export class DeliveryService {
     return this.prisma.tag.findMany({
       where: { siteId: site.id },
     });
+  }
+
+  async submitForm(
+    siteKey: string,
+    formKey: string,
+    payload: Record<string, unknown>,
+    meta: { ip?: string; userAgent?: string },
+  ) {
+    const site = await this.resolveSite(siteKey);
+
+    const submission = await this.prisma.formSubmission.create({
+      data: {
+        siteId: site.id,
+        formKey: formKey || 'contact',
+        payload: payload as Prisma.InputJsonValue,
+        status: FormSubmissionStatus.PENDING,
+        ipAddress: meta.ip ?? null,
+        userAgent: meta.userAgent ?? null,
+      },
+    });
+
+    return {
+      success: true,
+      submissionId: submission.id,
+      message: 'Form submitted successfully',
+    };
   }
 
   async streamMedia(objectKey: string, res: Response) {
