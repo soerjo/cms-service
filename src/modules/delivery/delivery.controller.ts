@@ -1,13 +1,27 @@
-import { Controller, Get, Headers, Param, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiQuery,
   ApiExcludeEndpoint,
+  ApiBody,
 } from '@nestjs/swagger';
 import { DeliveryService } from './delivery.service.js';
 import { Public } from '../../common/decorators/public.decorator.js';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 @ApiTags('delivery')
 @Public()
@@ -24,6 +38,10 @@ export class DeliveryController {
   }
 
   @Get('content')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
   @ApiOperation({ summary: 'Public list of published content entries' })
   @ApiQuery({ name: 'siteKey', required: false })
   @ApiQuery({ name: 'contentType', required: false })
@@ -60,6 +78,10 @@ export class DeliveryController {
   }
 
   @Get('content/:slug')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
   @ApiOperation({ summary: 'Get published content entry by slug' })
   @ApiQuery({ name: 'siteKey', required: false })
   @ApiQuery({ name: 'contentType', required: false })
@@ -86,6 +108,10 @@ export class DeliveryController {
   }
 
   @Get('pages')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
   @ApiOperation({ summary: 'List all published pages for a site' })
   @ApiQuery({ name: 'siteKey', required: false })
   @ApiQuery({ name: 'locale', required: false })
@@ -104,6 +130,10 @@ export class DeliveryController {
   }
 
   @Get('pages/*route')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
   @ApiOperation({ summary: 'Get published page by route' })
   @ApiQuery({ name: 'siteKey', required: false })
   @ApiQuery({ name: 'locale', required: false })
@@ -130,6 +160,10 @@ export class DeliveryController {
   }
 
   @Get('categories')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
   @ApiOperation({ summary: 'List all categories for a site' })
   @ApiQuery({ name: 'siteKey', required: false })
   getCategories(
@@ -146,6 +180,10 @@ export class DeliveryController {
   }
 
   @Get('tags')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
   @ApiOperation({ summary: 'List all tags for a site' })
   @ApiQuery({ name: 'siteKey', required: false })
   getTags(
@@ -159,6 +197,38 @@ export class DeliveryController {
       headerSiteKey,
     );
     return this.deliveryService.getTags(siteKey);
+  }
+
+  @Post(['forms/:formKey/submissions', 'forms/submit'])
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Submit public form data for a site' })
+  @ApiQuery({ name: 'siteKey', required: false })
+  @ApiBody({
+    description: 'Arbitrary form submission payload',
+    schema: { type: 'object' },
+  })
+  async submitForm(
+    @Body() payload: Record<string, unknown>,
+    @Req() req: Request,
+    @Param('formKey') pathFormKey?: string,
+    @Param('siteKey') pathSiteKey?: string,
+    @Query('siteKey') querySiteKey?: string,
+    @Headers('x-site-key') headerSiteKey?: string,
+  ) {
+    const siteKey = this.extractSiteKey(
+      pathSiteKey,
+      querySiteKey,
+      headerSiteKey,
+    );
+    const formKey = pathFormKey || 'contact';
+    const ip =
+      req.ip || (req.headers['x-forwarded-for'] as string) || undefined;
+    const userAgent = req.get('user-agent') || undefined;
+
+    return this.deliveryService.submitForm(siteKey, formKey, payload, {
+      ip,
+      userAgent,
+    });
   }
 
   @Get('media/*storageKey')

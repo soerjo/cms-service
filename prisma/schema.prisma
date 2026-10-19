@@ -29,6 +29,13 @@ enum PageStatus {
   ARCHIVED
 }
 
+enum FormSubmissionStatus {
+  PENDING
+  PROCESSED
+  SPAM
+  ARCHIVED
+}
+
 model Site {
   id            String     @id @default(uuid())
   key           String     @unique // slug /s/{siteKey}
@@ -156,16 +163,21 @@ model BlockTemplate {
 }
 
 model FormSubmission {
-  id        String   @id @default(uuid())
+  id        String               @id @default(uuid())
   siteId    String
-  formKey   String   @default("contact")
+  formKey   String               @default("contact")
   payload   Json
-  isSpam    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  status    FormSubmissionStatus @default(PENDING)
+  isSpam    Boolean              @default(false)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
 
-  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site      Site                 @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId, createdAt])
+  @@index([siteId, status])
   @@map("form_submissions")
 }
 

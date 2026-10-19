@@ -49,6 +49,12 @@ describe('SitesService', () => {
     mediaAsset: {
       findMany: jest.fn(),
     },
+    formSubmission: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
+    },
   };
 
   const mockTemplateSeeder = {
@@ -222,6 +228,43 @@ describe('SitesService', () => {
 
       const pages = await service.findSitePages('resto-enak');
       expect(pages).toEqual([{ id: 'page-1' }]);
+    });
+
+    it('findSiteSubmissions returns paginated submissions', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.formSubmission.findMany.mockResolvedValue([
+        { id: 'sub-1', formKey: 'contact', status: 'PENDING' },
+      ]);
+      mockPrisma.formSubmission.count.mockResolvedValue(1);
+
+      const result = await service.findSiteSubmissions('resto-enak');
+      expect(result.items).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+    });
+
+    it('updateSubmissionStatus updates status and spam flag', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.formSubmission.findFirst.mockResolvedValue({
+        id: 'sub-1',
+        siteId: 'site-1',
+        status: 'PENDING',
+      });
+      mockPrisma.formSubmission.update.mockResolvedValue({
+        id: 'sub-1',
+        status: 'SPAM',
+        isSpam: true,
+      });
+
+      const updated = await service.updateSubmissionStatus(
+        'resto-enak',
+        'sub-1',
+        'SPAM',
+      );
+      expect(updated.status).toBe('SPAM');
+      expect(mockPrisma.formSubmission.update).toHaveBeenCalledWith({
+        where: { id: 'sub-1' },
+        data: { status: 'SPAM', isSpam: true },
+      });
     });
   });
 });
