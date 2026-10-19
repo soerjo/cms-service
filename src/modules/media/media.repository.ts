@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { DEFAULT_SITE_ID } from '../../common/constants/site.constants.js';
 
 @Injectable()
 export class MediaRepository {
   constructor(private prisma: PrismaService) {}
 
   async create(data: {
+    siteId?: string;
     fileId: string;
     objectKey: string;
     originalName: string;
@@ -14,7 +16,13 @@ export class MediaRepository {
     altText?: string;
     uploadedById: string;
   }) {
-    return this.prisma.mediaAsset.create({ data });
+    const { siteId = DEFAULT_SITE_ID, ...rest } = data;
+    return this.prisma.mediaAsset.create({
+      data: {
+        siteId,
+        ...rest,
+      },
+    });
   }
 
   async findAll(skip?: number, take?: number) {

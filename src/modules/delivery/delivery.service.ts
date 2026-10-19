@@ -1,11 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CategoriesRepository } from '../categories/categories.repository.js';
 import { TagsRepository } from '../tags/tags.repository.js';
 import { MediaService } from '../media/media.service.js';
-import { ContentStatus } from '@prisma/client';
+import {
+  ContentStatus,
+  PageStatus,
+  SiteStatus,
+  type Site,
+} from '@prisma/client';
 import type { Prisma } from '@prisma/client';
-import { Response } from 'express';
+import type { Response } from 'express';
 
 @Injectable()
 export class DeliveryService {
@@ -16,7 +25,24 @@ export class DeliveryService {
     private mediaService: MediaService,
   ) {}
 
+  async resolveSite(siteKey?: string): Promise<Site> {
+    const key =
+      siteKey && siteKey.trim().length > 0 ? siteKey.trim() : 'default';
+    const site = await this.prisma.site.findUnique({ where: { key } });
+
+    if (!site) {
+      throw new NotFoundException(`Site '${key}' not found`);
+    }
+
+    if (site.status === SiteStatus.SUSPENDED) {
+      throw new ForbiddenException(`Site '${key}' is suspended`);
+    }
+
+    return site;
+  }
+
   async findPublishedContent(query: {
+    siteKey?: string;
     contentType?: string;
     locale?: string;
     page?: number;
@@ -24,11 +50,13 @@ export class DeliveryService {
     tag?: string;
     slug?: string;
   }) {
+    const site = await this.resolveSite(query.siteKey);
     const page = query.page && query.page > 0 ? query.page : 1;
     const limit = query.limit && query.limit > 0 ? query.limit : 10;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ContentEntryWhereInput = {
+      siteId: site.id,
       status: ContentStatus.PUBLISHED,
     };
 
@@ -90,8 +118,12 @@ export class DeliveryService {
     slug: string,
     contentTypeKey?: string,
     locale?: string,
+    siteKey?: string,
   ) {
+    const site = await this.resolveSite(siteKey);
+
     const where: Prisma.ContentEntryWhereInput = {
+      siteId: site.id,
       slug,
       status: ContentStatus.PUBLISHED,
       locale: locale || 'id',
@@ -116,19 +148,92 @@ export class DeliveryService {
 
     if (!entry) {
       throw new NotFoundException(
-        `Published entry with slug ${slug} not found`,
+        `Published entry with slug ${slug} not found on site '${site.key}'`,
       );
     }
 
     return entry;
   }
 
-  async getCategories() {
-    return this.categoriesRepo.findAll();
+  async findPublishedPages(siteKey?: string, locale?: string) {
+    const site = await this.resolveSite(siteKey);
+
+    return this.prisma.page.findMany({
+      where: {
+        siteId: site.id,
+        status: PageStatus.PUBLISHED,
+        locale: locale || 'id',
+      },
+      select: {
+        id: true,
+        route: true,
+        title: true,
+        isHome: true,
+        blocks: true,
+        metaTitle: true,
+        metaDescription: true,
+        canonicalUrl: true,
+        ogTitle: true,
+        ogImageAssetId: true,
+        robots: true,
+        publishedAt: true,
+      },
+      orderBy: { isHome: 'desc' },
+    });
   }
 
-  async getTags() {
-    return this.tagsRepo.findAll();
+  async findPublishedPageByRoute(
+    route: string,
+    siteKey?: string,
+    locale?: string,
+  ) {
+    const site = await this.resolveSite(siteKey);
+
+    const page = await this.prisma.page.findFirst({
+      where: {
+        siteId: site.id,
+        route,
+        status: PageStatus.PUBLISHED,
+        locale: locale || 'id',
+      },
+      select: {
+        id: true,
+        route: true,
+        title: true,
+        isHome: true,
+        blocks: true,
+        metaTitle: true,
+        metaDescription: true,
+        canonicalUrl: true,
+        ogTitle: true,
+        ogImageAssetId: true,
+        robots: true,
+        publishedAt: true,
+      },
+    });
+
+    if (!page) {
+      throw new NotFoundException(
+        `Published page with route '${route}' not found on site '${site.key}'`,
+      );
+    }
+
+    return page;
+  }
+
+  async getCategories(siteKey?: string) {
+    const site = await this.resolveSite(siteKey);
+    return this.prisma.category.findMany({
+      where: { siteId: site.id },
+      include: { children: true },
+    });
+  }
+
+  async getTags(siteKey?: string) {
+    const site = await this.resolveSite(siteKey);
+    return this.prisma.tag.findMany({
+      where: { siteId: site.id },
+    });
   }
 
   async streamMedia(objectKey: string, res: Response) {

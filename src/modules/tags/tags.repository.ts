@@ -2,14 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateTagDto } from './dto/create-tag.dto.js';
 import { UpdateTagDto } from './dto/update-tag.dto.js';
+import { DEFAULT_SITE_ID } from '../../common/constants/site.constants.js';
 
 @Injectable()
 export class TagsRepository {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateTagDto) {
+  async create(dto: CreateTagDto, siteId: string = DEFAULT_SITE_ID) {
     return this.prisma.tag.create({
       data: {
+        siteId,
         key: dto.key,
         name: dto.name,
       },

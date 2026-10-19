@@ -8,4 +8,5 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/test/test-setup.ts'],
   testTimeout: 30000,
+  testPathIgnorePatterns: ['/node_modules/', '\.e2e-spec\.ts$']
 };

@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateContentEntryDto } from './dto/create-content-entry.dto.js';
 import { ContentStatus } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
+import { DEFAULT_SITE_ID } from '../../common/constants/site.constants.js';
 
 @Injectable()
 export class ContentRepository {
@@ -12,9 +13,11 @@ export class ContentRepository {
     dto: CreateContentEntryDto,
     createdById: string,
     contentTypeId: string,
+    siteId: string = DEFAULT_SITE_ID,
   ) {
     return this.prisma.contentEntry.create({
       data: {
+        siteId,
         contentTypeId,
         slug: dto.slug,
         data: dto.data,

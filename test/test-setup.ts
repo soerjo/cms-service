@@ -2,6 +2,13 @@ import { config } from 'dotenv';
 
 config({ path: '.env' });
 
+// Default dummy fallback values for file service
+process.env.FILE_SERVICE_URL =
+  process.env.FILE_SERVICE_URL || 'https://dummy.fileservice.com';
+process.env.FILE_SERVICE_EMAIL =
+  process.env.FILE_SERVICE_EMAIL || 'dummy@fileservice.com';
+process.env.FILE_SERVICE_PASSWORD =
+  process.env.FILE_SERVICE_PASSWORD || 'dummyPassword';
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET_KEY = 'test-jwt-secret';
 process.env.JWT_EXPIRATION_TIME = '1h';

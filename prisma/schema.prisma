@@ -7,11 +7,166 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum SiteStatus {
+  ACTIVE
+  SUSPENDED
+  TRIAL_EXPIRED
+}
+
 enum ContentStatus {
   DRAFT
+  PENDING_REVIEW
   SCHEDULED
   PUBLISHED
   ARCHIVED
+}
+
+enum PageStatus {
+  DRAFT
+  PENDING_REVIEW
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+model Site {
+  id            String     @id @default(uuid())
+  key           String     @unique // slug /s/{siteKey}
+  name          String
+  domain        String?    @unique // custom domain web-profile
+  status        SiteStatus @default(ACTIVE)
+  plan          String?
+  locale        String?
+  defaultLocale String     @default("id")
+  timezone      String     @default("Asia/Jakarta")
+  userId        String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  members        SiteMember[]
+  locales        SiteLocale[]
+  settings       SiteSetting[]
+  pages          Page[]
+  entries        ContentEntry[]
+  categories     Category[]
+  tags           Tag[]
+  media          MediaAsset[]
+  blockTemplates BlockTemplate[]
+  forms          FormSubmission[]
+  contentTypes   ContentType[]
+
+  @@map("sites")
+}
+
+model SiteSetting {
+  id     String @id @default(uuid())
+  siteId String
+  key    String // brandName, logoAssetId, themeJson, seoDefault
+  value  Json
+
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, key])
+  @@map("site_settings")
+}
+
+model SiteMember {
+  id        String   @id @default(uuid())
+  siteId    String
+  userId    String   // UMS user ID (klaim token sub, no DB FK)
+  roleKey   String   // cms:site-admin | cms:editor | cms:publisher
+  createdAt DateTime @default(now())
+
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, userId])
+  @@index([userId])
+  @@map("site_members")
+}
+
+model SiteLocale {
+  id        String  @id @default(uuid())
+  siteId    String
+  code      String  // id, en
+  isDefault Boolean @default(false)
+
+  site      Site    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, code])
+  @@map("site_locales")
+}
+
+model Page {
+  id                 String         @id @default(uuid())
+  siteId             String
+  route              String         // "/", "/about", "/contact"
+  title              String
+  status             PageStatus     @default(DRAFT)
+  isHome             Boolean        @default(false)
+  blocks             Json           @default("[]") // [{id, type, props}]
+  locale             String         @default("id")
+  scheduledPublishAt DateTime?
+  publishedAt        DateTime?
+  createdById        String
+  metaTitle          String?
+  metaDescription    String?
+  canonicalUrl       String?
+  ogTitle            String?
+  ogImageAssetId     String?
+  robots             String?        @default("index,follow")
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  site               Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  revisions          PageRevision[]
+
+  @@unique([siteId, route, locale])
+  @@index([siteId, status, locale])
+  @@index([siteId, isHome])
+  @@map("pages")
+}
+
+model PageRevision {
+  id          String   @id @default(uuid())
+  pageId      String
+  version     Int
+  title       String
+  blocks      Json
+  createdById String
+  createdAt   DateTime @default(now())
+
+  page        Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, version])
+  @@map("page_revisions")
+}
+
+model BlockTemplate {
+  id        String   @id @default(uuid())
+  siteId    String?  // null = template global platform
+  key       String
+  name      String
+  schema    Json     // input field definition utk UI
+  createdAt DateTime @default(now())
+
+  site      Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, key])
+  @@map("block_templates")
+}
+
+model FormSubmission {
+  id        String   @id @default(uuid())
+  siteId    String
+  formKey   String   @default("contact")
+  payload   Json
+  isSpam    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, createdAt])
+  @@map("form_submissions")
 }
 
 model ContentType {
@@ -21,33 +176,42 @@ model ContentType {
   description String?
   fields      Json
   isSingleton Boolean  @default(false)
+  isSystem    Boolean  @default(false)
+  siteId      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  site        Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
   entries     ContentEntry[]
 
   @@map("content_types")
 }
 
 model ContentEntry {
-  id            String        @id @default(uuid())
-  contentTypeId String
-  status        ContentStatus @default(DRAFT)
-  slug          String
-  data          Json
-  locale        String        @default("id")
-  createdById   String
-  publishedById String?
-  publishedAt   DateTime?
+  id                 String        @id @default(uuid())
+  siteId             String
+  contentTypeId      String
+  status             ContentStatus @default(DRAFT)
+  slug               String
+  data               Json
+  locale             String        @default("id")
+  createdById        String
+  publishedById      String?
+  publishedAt        DateTime?
   scheduledPublishAt DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  pendingReviewAt    DateTime?
+  reviewerById       String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
-  contentType   ContentType   @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
-  versions      ContentVersion[]
-  tags          ContentTag[]
+  site               Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contentType        ContentType   @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+  versions           ContentVersion[]
+  tags               ContentTag[]
 
-  @@unique([contentTypeId, slug, locale])
+  @@unique([siteId, contentTypeId, slug, locale])
+  @@index([siteId, contentTypeId, locale, status])
+  @@index([siteId, status])
   @@map("content_entries")
 }
 
@@ -67,27 +231,33 @@ model ContentVersion {
 
 model Category {
   id          String     @id @default(uuid())
-  key         String     @unique
+  siteId      String
+  key         String
   name        String
   parentId    String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  site        Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
   parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children    Category[] @relation("CategoryHierarchy")
 
+  @@unique([siteId, key])
   @@map("categories")
 }
 
 model Tag {
   id        String       @id @default(uuid())
-  key       String       @unique
+  siteId    String
+  key       String
   name      String
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
+  site      Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
   entries   ContentTag[]
 
+  @@unique([siteId, key])
   @@map("tags")
 }
 
@@ -105,6 +275,7 @@ model ContentTag {
 
 model MediaAsset {
   id           String   @id @default(uuid())
+  siteId       String
   fileId       String   @unique
   objectKey    String   @unique
   originalName String
@@ -114,9 +285,13 @@ model MediaAsset {
   altText      String?
   width        Int?
   height       Int?
+  focalPoint   Json?
   uploadedById String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  site         Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, createdAt])
   @@map("media_assets")
 }
