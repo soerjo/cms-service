@@ -40,6 +40,9 @@ describe('DeliveryService (Multi-Site Scoping)', () => {
       findMany: jest.fn(),
       findFirst: jest.fn(),
     },
+    formSubmission: {
+      create: jest.fn(),
+    },
     category: {
       findMany: jest.fn(),
     },
@@ -208,6 +211,50 @@ describe('DeliveryService (Multi-Site Scoping)', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('submitForm', () => {
+    it('creates a form submission record scoped to site', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.formSubmission.create.mockResolvedValue({
+        id: 'sub-1',
+        siteId: 'site-uuid-1',
+        formKey: 'contact',
+        status: 'PENDING',
+      });
+
+      const result = await service.submitForm(
+        'toko-kopi',
+        'contact',
+        { name: 'Budi', message: 'Tanya produk' },
+        { ip: '127.0.0.1', userAgent: 'Mozilla/5.0' },
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.submissionId).toBe('sub-1');
+      expect(mockPrisma.formSubmission.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          siteId: 'site-uuid-1',
+          formKey: 'contact',
+          payload: { name: 'Budi', message: 'Tanya produk' },
+          ipAddress: '127.0.0.1',
+          userAgent: 'Mozilla/5.0',
+        }) as unknown,
+      });
+    });
+
+    it('rejects form submission if site is suspended', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSuspendedSite);
+
+      await expect(
+        service.submitForm(
+          'suspended-site',
+          'contact',
+          { message: 'halo' },
+          {},
+        ),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

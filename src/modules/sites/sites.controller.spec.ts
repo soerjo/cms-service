@@ -29,6 +29,8 @@ describe('SitesController', () => {
     findSitePages: jest.fn(),
     findSiteMedia: jest.fn(),
     findSiteMembers: jest.fn(),
+    findSiteSubmissions: jest.fn(),
+    updateSubmissionStatus: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -110,5 +112,28 @@ describe('SitesController', () => {
 
     await controller.findSiteMembers('resto-enak');
     expect(mockSitesService.findSiteMembers).toHaveBeenCalledWith('resto-enak');
+
+    mockSitesService.findSiteSubmissions.mockResolvedValue({
+      items: [],
+      meta: {},
+    });
+    await controller.findSiteSubmissions('resto-enak');
+    expect(mockSitesService.findSiteSubmissions).toHaveBeenCalledWith(
+      'resto-enak',
+      expect.any(Object),
+    );
+
+    mockSitesService.updateSubmissionStatus.mockResolvedValue({
+      id: 'sub-1',
+      status: 'PROCESSED',
+    });
+    await controller.updateSubmissionStatus('resto-enak', 'sub-1', {
+      status: 'PROCESSED',
+    });
+    expect(mockSitesService.updateSubmissionStatus).toHaveBeenCalledWith(
+      'resto-enak',
+      'sub-1',
+      'PROCESSED',
+    );
   });
 });

@@ -309,6 +309,24 @@
         },
         "type": "object"
       },
+      "UpdateSubmissionStatusDto": {
+        "properties": {
+          "status": {
+            "enum": [
+              "PENDING",
+              "PROCESSED",
+              "SPAM",
+              "ARCHIVED"
+            ],
+            "example": "PROCESSED",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
       "UpdateTagDto": {
         "properties": {
           "key": {
@@ -725,6 +743,120 @@
           }
         ],
         "summary": "List all pages for a site",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}/submissions": {
+      "get": {
+        "operationId": "SitesController_findSiteSubmissions",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "formKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "PROCESSED",
+                "SPAM",
+                "ARCHIVED"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all form submissions for a site",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}/submissions/{id}": {
+      "patch": {
+        "operationId": "SitesController_updateSubmissionStatus",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubmissionStatusDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update form submission status",
         "tags": [
           "sites"
         ]
@@ -1457,6 +1589,108 @@
         ]
       }
     },
+    "/api/delivery/v1/forms/submit": {
+      "post": {
+        "operationId": "DeliveryController_submitForm[1]",
+        "parameters": [
+          {
+            "name": "formKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "description": "Arbitrary form submission payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Submit public form data for a site",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
+    "/api/delivery/v1/forms/{formKey}/submissions": {
+      "post": {
+        "operationId": "DeliveryController_submitForm[0]",
+        "parameters": [
+          {
+            "name": "formKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "description": "Arbitrary form submission payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Submit public form data for a site",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
     "/api/delivery/v1/pages": {
       "get": {
         "operationId": "DeliveryController_getPublishedPages[0]",
@@ -2019,6 +2253,108 @@
           }
         },
         "summary": "Get published content entry by slug",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
+    "/api/s/{siteKey}/delivery/v1/forms/submit": {
+      "post": {
+        "operationId": "DeliveryController_submitForm[3]",
+        "parameters": [
+          {
+            "name": "formKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "description": "Arbitrary form submission payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Submit public form data for a site",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
+    "/api/s/{siteKey}/delivery/v1/forms/{formKey}/submissions": {
+      "post": {
+        "operationId": "DeliveryController_submitForm[2]",
+        "parameters": [
+          {
+            "name": "formKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "description": "Arbitrary form submission payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Submit public form data for a site",
         "tags": [
           "delivery"
         ]

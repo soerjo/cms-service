@@ -17,9 +17,10 @@ import {
 import { SitesService } from './sites.service.js';
 import { CreateSiteDto } from './dto/create-site.dto.js';
 import { UpdateSiteDto } from './dto/update-site.dto.js';
+import { UpdateSubmissionStatusDto } from './dto/update-submission-status.dto.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import type { AuthUser } from '../../common/interfaces/auth-user.interface.js';
-import { SiteStatus } from '@prisma/client';
+import { SiteStatus, FormSubmissionStatus } from '@prisma/client';
 
 @ApiTags('sites')
 @ApiBearerAuth()
@@ -81,5 +82,36 @@ export class SitesController {
   @ApiOperation({ summary: 'List all members for a site' })
   async findSiteMembers(@Param('key') key: string) {
     return this.sitesService.findSiteMembers(key);
+  }
+
+  @Get(':key/submissions')
+  @ApiOperation({ summary: 'List all form submissions for a site' })
+  @ApiQuery({ name: 'formKey', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, enum: FormSubmissionStatus })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async findSiteSubmissions(
+    @Param('key') key: string,
+    @Query('formKey') formKey?: string,
+    @Query('status') status?: FormSubmissionStatus,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.sitesService.findSiteSubmissions(key, {
+      formKey,
+      status,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
+  @Patch(':key/submissions/:id')
+  @ApiOperation({ summary: 'Update form submission status' })
+  async updateSubmissionStatus(
+    @Param('key') key: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateSubmissionStatusDto,
+  ) {
+    return this.sitesService.updateSubmissionStatus(key, id, dto.status);
   }
 }
