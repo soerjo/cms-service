@@ -30,7 +30,7 @@ import { ContentStatus } from '@prisma/client';
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Roles('ums:admin')
-@Controller('content/entries')
+@Controller(['content/entries', 'content'])
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
@@ -112,14 +112,14 @@ export class ContentController {
     return this.contentService.archive(id);
   }
 
-  @Get(':id/versions')
-  @ApiOperation({ summary: 'List all versions of a content entry' })
+  @Get([':id/versions', ':id/revisions'])
+  @ApiOperation({ summary: 'List all versions/revisions of a content entry' })
   getVersions(@Param('id') id: string) {
     return this.contentService.getVersions(id);
   }
 
-  @Get(':id/versions/:version')
-  @ApiOperation({ summary: 'Get specific version of a content entry' })
+  @Get([':id/versions/:version', ':id/revisions/:version'])
+  @ApiOperation({ summary: 'Get specific version/revision of a content entry' })
   getVersionByNumber(
     @Param('id') id: string,
     @Param('version', ParseIntPipe) version: number,
@@ -127,9 +127,9 @@ export class ContentController {
     return this.contentService.getVersionByNumber(id, version);
   }
 
-  @Post(':id/versions/:version/restore')
+  @Post([':id/versions/:version/restore', ':id/revert/:version'])
   @ApiOperation({
-    summary: 'Restore a specific version as a new draft version',
+    summary: 'Restore/revert a specific version as a new draft version',
   })
   restoreVersion(
     @Param('id') id: string,

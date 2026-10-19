@@ -2,9 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { AppModule } from '../src/app.module';
 
-// Provide required environment variables for Nest bootstrap
+// Provide required environment variables for Nest bootstrap BEFORE importing AppModule
 process.env.NODE_ENV = 'test';
 process.env.FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || 'https://dummy.fileservice.com';
 process.env.FILE_SERVICE_EMAIL = process.env.FILE_SERVICE_EMAIL || 'dummy@fileservice.com';
@@ -13,6 +12,7 @@ process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://user:pass@l
 process.env.UMS_JWT_PUBLIC_KEY = process.env.UMS_JWT_PUBLIC_KEY || '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Y8+test\n-----END PUBLIC KEY-----';
 
 async function generate() {
+  const { AppModule } = await import('../src/app.module.js');
   const app = await NestFactory.create(AppModule, {
     logger: false,
   });

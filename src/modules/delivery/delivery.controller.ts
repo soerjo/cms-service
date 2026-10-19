@@ -231,6 +231,58 @@ export class DeliveryController {
     });
   }
 
+  @Get('sitemap.xml')
+  @Header('Content-Type', 'application/xml')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
+  @ApiOperation({ summary: 'Dynamic XML sitemap for a site' })
+  @ApiQuery({ name: 'siteKey', required: false })
+  async getSitemap(
+    @Req() req: Request,
+    @Param('siteKey') pathSiteKey?: string,
+    @Query('siteKey') querySiteKey?: string,
+    @Headers('x-site-key') headerSiteKey?: string,
+  ) {
+    const siteKey = this.extractSiteKey(
+      pathSiteKey,
+      querySiteKey,
+      headerSiteKey,
+    );
+    const protocol = req.protocol || 'https';
+    const host = req.get('host');
+    const baseUrl = host ? `${protocol}://${host}` : undefined;
+
+    return this.deliveryService.generateSitemapXml(siteKey, baseUrl);
+  }
+
+  @Get('robots.txt')
+  @Header('Content-Type', 'text/plain')
+  @Header(
+    'Cache-Control',
+    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  )
+  @ApiOperation({ summary: 'Dynamic robots.txt for a site' })
+  @ApiQuery({ name: 'siteKey', required: false })
+  async getRobots(
+    @Req() req: Request,
+    @Param('siteKey') pathSiteKey?: string,
+    @Query('siteKey') querySiteKey?: string,
+    @Headers('x-site-key') headerSiteKey?: string,
+  ) {
+    const siteKey = this.extractSiteKey(
+      pathSiteKey,
+      querySiteKey,
+      headerSiteKey,
+    );
+    const protocol = req.protocol || 'https';
+    const host = req.get('host');
+    const baseUrl = host ? `${protocol}://${host}` : undefined;
+
+    return this.deliveryService.generateRobotsTxt(siteKey, baseUrl);
+  }
+
   @Get('media/*storageKey')
   @ApiOperation({ summary: 'Stream media file by storageKey' })
   @ApiExcludeEndpoint()

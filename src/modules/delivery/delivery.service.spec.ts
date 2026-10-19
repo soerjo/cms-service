@@ -257,4 +257,54 @@ describe('DeliveryService (Multi-Site Scoping)', () => {
       ).rejects.toThrow(ForbiddenException);
     });
   });
+
+  describe('SEO generator (sitemap & robots)', () => {
+    it('generates valid sitemap XML including pages and content', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.page.findMany.mockResolvedValue([
+        {
+          route: '/',
+          isHome: true,
+          updatedAt: new Date('2026-10-19T00:00:00Z'),
+          publishedAt: new Date('2026-10-19T00:00:00Z'),
+        },
+      ]);
+      mockPrisma.contentEntry.findMany.mockResolvedValue([
+        {
+          slug: 'promo-kopi',
+          updatedAt: new Date('2026-10-19T00:00:00Z'),
+          publishedAt: new Date('2026-10-19T00:00:00Z'),
+        },
+      ]);
+
+      const xml = await service.generateSitemapXml(
+        'toko-kopi',
+        'https://tokokopi.id',
+      );
+
+      expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+      expect(xml).toContain(
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      );
+      expect(xml).toContain('<loc>https://tokokopi.id/</loc>');
+      expect(xml).toContain('<priority>1.0</priority>');
+      expect(xml).toContain(
+        '<loc>https://tokokopi.id/content/promo-kopi</loc>',
+      );
+      expect(xml).toContain('<priority>0.6</priority>');
+    });
+
+    it('generates valid robots.txt with sitemap reference', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+
+      const robots = await service.generateRobotsTxt(
+        'toko-kopi',
+        'https://tokokopi.id',
+      );
+
+      expect(robots).toContain('User-agent: *');
+      expect(robots).toContain('Allow: /');
+      expect(robots).toContain('Sitemap: https://tokokopi.id/sitemap.xml');
+    });
+  });
 });

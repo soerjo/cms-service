@@ -263,6 +263,95 @@ export class DeliveryService {
     };
   }
 
+  async generateSitemapXml(
+    siteKey: string,
+    baseUrlOverride?: string,
+  ): Promise<string> {
+    const site = await this.resolveSite(siteKey);
+
+    const host =
+      baseUrlOverride ||
+      (site.domain
+        ? `https://${site.domain}`
+        : `https://${site.key}.cms.local`);
+    const cleanHost = host.replace(/\/+$/, '');
+
+    const [pages, entries] = await Promise.all([
+      this.prisma.page.findMany({
+        where: { siteId: site.id, status: PageStatus.PUBLISHED },
+        select: {
+          route: true,
+          isHome: true,
+          updatedAt: true,
+          publishedAt: true,
+        },
+      }),
+      this.prisma.contentEntry.findMany({
+        where: { siteId: site.id, status: ContentStatus.PUBLISHED },
+        select: { slug: true, updatedAt: true, publishedAt: true },
+      }),
+    ]);
+
+    const urlEntries: string[] = [];
+
+    for (const page of pages) {
+      const pagePath = page.route.startsWith('/')
+        ? page.route
+        : `/${page.route}`;
+      const loc = `${cleanHost}${pagePath}`;
+      const modDate = (page.updatedAt || page.publishedAt || new Date())
+        .toISOString()
+        .split('T')[0];
+      const priority = page.isHome ? '1.0' : '0.8';
+
+      urlEntries.push(`  <url>
+    <loc>${loc}</loc>
+    <lastmod>${modDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>${priority}</priority>
+  </url>`);
+    }
+
+    for (const entry of entries) {
+      const loc = `${cleanHost}/content/${entry.slug}`;
+      const modDate = (entry.updatedAt || entry.publishedAt || new Date())
+        .toISOString()
+        .split('T')[0];
+
+      urlEntries.push(`  <url>
+    <loc>${loc}</loc>
+    <lastmod>${modDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+    }
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urlEntries.join('\n')}
+</urlset>`;
+  }
+
+  async generateRobotsTxt(
+    siteKey: string,
+    baseUrlOverride?: string,
+  ): Promise<string> {
+    const site = await this.resolveSite(siteKey);
+
+    const host =
+      baseUrlOverride ||
+      (site.domain
+        ? `https://${site.domain}`
+        : `https://${site.key}.cms.local`);
+    const cleanHost = host.replace(/\/+$/, '');
+
+    return `User-agent: *
+Allow: /
+
+Sitemap: ${cleanHost}/sitemap.xml
+`;
+  }
+
   async streamMedia(objectKey: string, res: Response) {
     const decodedKey = decodeURIComponent(objectKey);
     const presignedUrl =

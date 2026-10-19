@@ -14,6 +14,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "docs:openapi": "bun run scripts/generate-openapi.ts",
+    "seed:sites": "bun run scripts/seed-starter-sites.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

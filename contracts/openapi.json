@@ -862,6 +862,102 @@
         ]
       }
     },
+    "/api/content": {
+      "get": {
+        "operationId": "ContentController_findAll[1]",
+        "parameters": [
+          {
+            "name": "contentTypeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PENDING_REVIEW",
+                "SCHEDULED",
+                "PUBLISHED",
+                "ARCHIVED"
+              ]
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List content entries with optional filters",
+        "tags": [
+          "content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentController_create[1]",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContentEntryDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new content entry (DRAFT)",
+        "tags": [
+          "content"
+        ]
+      }
+    },
     "/api/content-types": {
       "get": {
         "operationId": "ContentTypesController_findAll",
@@ -1005,7 +1101,7 @@
     },
     "/api/content/entries": {
       "get": {
-        "operationId": "ContentController_findAll",
+        "operationId": "ContentController_findAll[0]",
         "parameters": [
           {
             "name": "contentTypeId",
@@ -1071,7 +1167,7 @@
         ]
       },
       "post": {
-        "operationId": "ContentController_create",
+        "operationId": "ContentController_create[0]",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1101,7 +1197,7 @@
     },
     "/api/content/entries/{id}": {
       "delete": {
-        "operationId": "ContentController_remove",
+        "operationId": "ContentController_remove[0]",
         "parameters": [
           {
             "name": "id",
@@ -1128,7 +1224,7 @@
         ]
       },
       "get": {
-        "operationId": "ContentController_findById",
+        "operationId": "ContentController_findById[0]",
         "parameters": [
           {
             "name": "id",
@@ -1155,7 +1251,7 @@
         ]
       },
       "patch": {
-        "operationId": "ContentController_update",
+        "operationId": "ContentController_update[0]",
         "parameters": [
           {
             "name": "id",
@@ -1194,7 +1290,7 @@
     },
     "/api/content/entries/{id}/archive": {
       "post": {
-        "operationId": "ContentController_archive",
+        "operationId": "ContentController_archive[0]",
         "parameters": [
           {
             "name": "id",
@@ -1223,7 +1319,7 @@
     },
     "/api/content/entries/{id}/publish": {
       "post": {
-        "operationId": "ContentController_publish",
+        "operationId": "ContentController_publish[0]",
         "parameters": [
           {
             "name": "id",
@@ -1262,7 +1358,7 @@
     },
     "/api/content/entries/{id}/publish/cancel": {
       "post": {
-        "operationId": "ContentController_cancelSchedule",
+        "operationId": "ContentController_cancelSchedule[0]",
         "parameters": [
           {
             "name": "id",
@@ -1289,9 +1385,112 @@
         ]
       }
     },
+    "/api/content/entries/{id}/revert/{version}": {
+      "post": {
+        "operationId": "ContentController_restoreVersion[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore/revert a specific version as a new draft version",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/entries/{id}/revisions": {
+      "get": {
+        "operationId": "ContentController_getVersions[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all versions/revisions of a content entry",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/entries/{id}/revisions/{version}": {
+      "get": {
+        "operationId": "ContentController_getVersionByNumber[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get specific version/revision of a content entry",
+        "tags": [
+          "content"
+        ]
+      }
+    },
     "/api/content/entries/{id}/unpublish": {
       "post": {
-        "operationId": "ContentController_unpublish",
+        "operationId": "ContentController_unpublish[0]",
         "parameters": [
           {
             "name": "id",
@@ -1320,7 +1519,7 @@
     },
     "/api/content/entries/{id}/versions": {
       "get": {
-        "operationId": "ContentController_getVersions",
+        "operationId": "ContentController_getVersions[0]",
         "parameters": [
           {
             "name": "id",
@@ -1341,7 +1540,7 @@
             "bearer": []
           }
         ],
-        "summary": "List all versions of a content entry",
+        "summary": "List all versions/revisions of a content entry",
         "tags": [
           "content"
         ]
@@ -1349,7 +1548,7 @@
     },
     "/api/content/entries/{id}/versions/{version}": {
       "get": {
-        "operationId": "ContentController_getVersionByNumber",
+        "operationId": "ContentController_getVersionByNumber[0]",
         "parameters": [
           {
             "name": "id",
@@ -1378,7 +1577,7 @@
             "bearer": []
           }
         ],
-        "summary": "Get specific version of a content entry",
+        "summary": "Get specific version/revision of a content entry",
         "tags": [
           "content"
         ]
@@ -1386,7 +1585,7 @@
     },
     "/api/content/entries/{id}/versions/{version}/restore": {
       "post": {
-        "operationId": "ContentController_restoreVersion",
+        "operationId": "ContentController_restoreVersion[0]",
         "parameters": [
           {
             "name": "id",
@@ -1415,7 +1614,432 @@
             "bearer": []
           }
         ],
-        "summary": "Restore a specific version as a new draft version",
+        "summary": "Restore/revert a specific version as a new draft version",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}": {
+      "delete": {
+        "operationId": "ContentController_remove[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete content entry",
+        "tags": [
+          "content"
+        ]
+      },
+      "get": {
+        "operationId": "ContentController_findById[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get content entry by ID",
+        "tags": [
+          "content"
+        ]
+      },
+      "patch": {
+        "operationId": "ContentController_update[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContentEntryDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update content entry data (creates new version)",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/archive": {
+      "post": {
+        "operationId": "ContentController_archive[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Archive content entry",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/publish": {
+      "post": {
+        "operationId": "ContentController_publish[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishScheduleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Publish content entry (or schedule it when scheduledAt is in the future)",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/publish/cancel": {
+      "post": {
+        "operationId": "ContentController_cancelSchedule[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel a scheduled publish (revert to DRAFT)",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/revert/{version}": {
+      "post": {
+        "operationId": "ContentController_restoreVersion[3]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore/revert a specific version as a new draft version",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/revisions": {
+      "get": {
+        "operationId": "ContentController_getVersions[3]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all versions/revisions of a content entry",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/revisions/{version}": {
+      "get": {
+        "operationId": "ContentController_getVersionByNumber[3]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get specific version/revision of a content entry",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/unpublish": {
+      "post": {
+        "operationId": "ContentController_unpublish[1]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unpublish content entry (revert to DRAFT)",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/versions": {
+      "get": {
+        "operationId": "ContentController_getVersions[2]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all versions/revisions of a content entry",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/versions/{version}": {
+      "get": {
+        "operationId": "ContentController_getVersionByNumber[2]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get specific version/revision of a content entry",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/content/{id}/versions/{version}/restore": {
+      "post": {
+        "operationId": "ContentController_restoreVersion[2]",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore/revert a specific version as a new draft version",
         "tags": [
           "content"
         ]
@@ -1774,6 +2398,70 @@
           }
         },
         "summary": "Get published page by route",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
+    "/api/delivery/v1/robots.txt": {
+      "get": {
+        "operationId": "DeliveryController_getRobots[0]",
+        "parameters": [
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Dynamic robots.txt for a site",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
+    "/api/delivery/v1/sitemap.xml": {
+      "get": {
+        "operationId": "DeliveryController_getSitemap[0]",
+        "parameters": [
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Dynamic XML sitemap for a site",
         "tags": [
           "delivery"
         ]
@@ -2443,6 +3131,70 @@
           }
         },
         "summary": "Get published page by route",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
+    "/api/s/{siteKey}/delivery/v1/robots.txt": {
+      "get": {
+        "operationId": "DeliveryController_getRobots[1]",
+        "parameters": [
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Dynamic robots.txt for a site",
+        "tags": [
+          "delivery"
+        ]
+      }
+    },
+    "/api/s/{siteKey}/delivery/v1/sitemap.xml": {
+      "get": {
+        "operationId": "DeliveryController_getSitemap[1]",
+        "parameters": [
+          {
+            "name": "siteKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-site-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Dynamic XML sitemap for a site",
         "tags": [
           "delivery"
         ]
