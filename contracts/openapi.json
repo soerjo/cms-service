@@ -91,6 +91,43 @@
         ],
         "type": "object"
       },
+      "CreateSiteDto": {
+        "properties": {
+          "defaultLocale": {
+            "default": "id",
+            "example": "id",
+            "type": "string"
+          },
+          "domain": {
+            "example": "kopikenangan.id",
+            "type": "string"
+          },
+          "key": {
+            "description": "URL-friendly slug for /s/{key}",
+            "example": "kopi-kenangan",
+            "type": "string"
+          },
+          "name": {
+            "example": "Kopi Kenangan Senopati",
+            "type": "string"
+          },
+          "templateKey": {
+            "description": "Optional starter template key (resto-web-profile | toko-retail-profile | jasa-service-profile)",
+            "example": "resto-web-profile",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "Asia/Jakarta",
+            "example": "Asia/Jakarta",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "key"
+        ],
+        "type": "object"
+      },
       "CreateTagDto": {
         "properties": {
           "key": {
@@ -237,6 +274,36 @@
           },
           "name": {
             "example": "Article",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateSiteDto": {
+        "properties": {
+          "defaultLocale": {
+            "example": "en",
+            "type": "string"
+          },
+          "domain": {
+            "example": "kopibaru.id",
+            "type": "string"
+          },
+          "name": {
+            "example": "Kopi Kenangan Baru",
+            "type": "string"
+          },
+          "status": {
+            "default": "ACTIVE",
+            "enum": [
+              "ACTIVE",
+              "SUSPENDED",
+              "TRIAL_EXPIRED"
+            ],
+            "type": "string"
+          },
+          "timezone": {
+            "example": "Asia/Makassar",
             "type": "string"
           }
         },
@@ -410,6 +477,256 @@
         "summary": "Update category by ID",
         "tags": [
           "Categories"
+        ]
+      }
+    },
+    "/api/cms/sites": {
+      "get": {
+        "operationId": "SitesController_findAllSites",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "SUSPENDED",
+                "TRIAL_EXPIRED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all CMS sites accessible to current user",
+        "tags": [
+          "sites"
+        ]
+      },
+      "post": {
+        "operationId": "SitesController_createSite",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSiteDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create new CMS site with optional starter template",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}": {
+      "delete": {
+        "operationId": "SitesController_deleteSite",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Suspend / delete site",
+        "tags": [
+          "sites"
+        ]
+      },
+      "get": {
+        "operationId": "SitesController_findSiteByKey",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get site details by key",
+        "tags": [
+          "sites"
+        ]
+      },
+      "patch": {
+        "operationId": "SitesController_updateSite",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update site details",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}/media": {
+      "get": {
+        "operationId": "SitesController_findSiteMedia",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all media assets for a site",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}/members": {
+      "get": {
+        "operationId": "SitesController_findSiteMembers",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all members for a site",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}/pages": {
+      "get": {
+        "operationId": "SitesController_findSitePages",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all pages for a site",
+        "tags": [
+          "sites"
         ]
       }
     },

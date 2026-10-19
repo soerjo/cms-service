@@ -16,6 +16,7 @@ import { CategoriesModule } from './modules/categories/categories.module.js';
 import { TagsModule } from './modules/tags/tags.module.js';
 import { MediaModule } from './modules/media/media.module.js';
 import { DeliveryModule } from './modules/delivery/delivery.module.js';
+import { SitesModule } from './modules/sites/sites.module.js';
 import { loggerConfig } from './config/logger.config.js';
 import { validate } from './config/env.validation.js';
 import { InterServiceHttpClientModule } from './common/http-client/http-client.module.js';
@@ -48,6 +49,7 @@ import { InterServiceHttpClientModule } from './common/http-client/http-client.m
     TagsModule,
     MediaModule,
     DeliveryModule,
+    SitesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
