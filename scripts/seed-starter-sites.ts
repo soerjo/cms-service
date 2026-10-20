@@ -11,14 +11,6 @@ async function importFromDistOrSrc<T>(
   }
 }
 
-const { AppModule } = await importFromDistOrSrc<
-  typeof import('../src/app.module.js')
->('../dist/app.module.js', '../src/app.module.js');
-
-const { SitesService } = await importFromDistOrSrc<
-  typeof import('../src/modules/sites/sites.service.js')
->('../dist/modules/sites/sites.service.js', '../src/modules/sites/sites.service.js');
-
 interface SeedSiteDef {
   key: string;
   name: string;
@@ -60,6 +52,14 @@ async function seed() {
   process.env.UMS_JWT_PUBLIC_KEY =
     process.env.UMS_JWT_PUBLIC_KEY ||
     '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Y8+test\n-----END PUBLIC KEY-----';
+
+  const { AppModule } = await importFromDistOrSrc<
+    typeof import('../src/app.module.js')
+  >('../dist/app.module.js', '../src/app.module.js');
+
+  const { SitesService } = await importFromDistOrSrc<
+    typeof import('../src/modules/sites/sites.service.js')
+  >('../dist/modules/sites/sites.service.js', '../src/modules/sites/sites.service.js');
 
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: ['log', 'warn', 'error'],

@@ -31,6 +31,11 @@ describe('SitesController', () => {
     findSiteMembers: jest.fn(),
     findSiteSubmissions: jest.fn(),
     updateSubmissionStatus: jest.fn(),
+    createSitePage: jest.fn(),
+    findSitePageById: jest.fn(),
+    updateSitePage: jest.fn(),
+    deleteSitePage: jest.fn(),
+    revertSitePageVersion: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -134,6 +139,63 @@ describe('SitesController', () => {
       'resto-enak',
       'sub-1',
       'PROCESSED',
+    );
+
+    mockSitesService.createSitePage.mockResolvedValue({ id: 'page-1' });
+    await controller.createSitePage(
+      'resto-enak',
+      { route: '/menu', title: 'Menu' },
+      adminUser,
+    );
+    expect(mockSitesService.createSitePage).toHaveBeenCalledWith(
+      'resto-enak',
+      { route: '/menu', title: 'Menu' },
+      adminUser,
+    );
+
+    mockSitesService.findSitePageById.mockResolvedValue({ id: 'page-1' });
+    await controller.findSitePageById('resto-enak', 'page-1');
+    expect(mockSitesService.findSitePageById).toHaveBeenCalledWith(
+      'resto-enak',
+      'page-1',
+    );
+
+    mockSitesService.updateSitePage.mockResolvedValue({
+      id: 'page-1',
+      title: 'Menu Baru',
+    });
+    await controller.updateSitePage(
+      'resto-enak',
+      'page-1',
+      { title: 'Menu Baru' },
+      adminUser,
+    );
+    expect(mockSitesService.updateSitePage).toHaveBeenCalledWith(
+      'resto-enak',
+      'page-1',
+      { title: 'Menu Baru' },
+      adminUser,
+    );
+
+    mockSitesService.deleteSitePage.mockResolvedValue({ success: true });
+    await controller.deleteSitePage('resto-enak', 'page-1');
+    expect(mockSitesService.deleteSitePage).toHaveBeenCalledWith(
+      'resto-enak',
+      'page-1',
+    );
+
+    mockSitesService.revertSitePageVersion.mockResolvedValue({ id: 'page-1' });
+    await controller.revertSitePageVersion(
+      'resto-enak',
+      'page-1',
+      1,
+      adminUser,
+    );
+    expect(mockSitesService.revertSitePageVersion).toHaveBeenCalledWith(
+      'resto-enak',
+      'page-1',
+      1,
+      adminUser,
     );
   });
 });

@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -17,6 +18,8 @@ import {
 import { SitesService } from './sites.service.js';
 import { CreateSiteDto } from './dto/create-site.dto.js';
 import { UpdateSiteDto } from './dto/update-site.dto.js';
+import { CreatePageDto } from './dto/create-page.dto.js';
+import { UpdatePageDto } from './dto/update-page.dto.js';
 import { UpdateSubmissionStatusDto } from './dto/update-submission-status.dto.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import type { AuthUser } from '../../common/interfaces/auth-user.interface.js';
@@ -70,6 +73,58 @@ export class SitesController {
   @ApiOperation({ summary: 'List all pages for a site' })
   async findSitePages(@Param('key') key: string) {
     return this.sitesService.findSitePages(key);
+  }
+
+  @Post(':key/pages')
+  @ApiOperation({ summary: 'Create a new page under a site' })
+  async createSitePage(
+    @Param('key') key: string,
+    @Body() dto: CreatePageDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.sitesService.createSitePage(key, dto, user);
+  }
+
+  @Get(':key/pages/:pageId')
+  @ApiOperation({ summary: 'Get page details by ID with revisions history' })
+  async findSitePageById(
+    @Param('key') key: string,
+    @Param('pageId') pageId: string,
+  ) {
+    return this.sitesService.findSitePageById(key, pageId);
+  }
+
+  @Patch(':key/pages/:pageId')
+  @ApiOperation({ summary: 'Update page blocks, title, route, status, or SEO' })
+  async updateSitePage(
+    @Param('key') key: string,
+    @Param('pageId') pageId: string,
+    @Body() dto: UpdatePageDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.sitesService.updateSitePage(key, pageId, dto, user);
+  }
+
+  @Delete(':key/pages/:pageId')
+  @ApiOperation({ summary: 'Delete page and all its revisions' })
+  async deleteSitePage(
+    @Param('key') key: string,
+    @Param('pageId') pageId: string,
+  ) {
+    return this.sitesService.deleteSitePage(key, pageId);
+  }
+
+  @Post(':key/pages/:pageId/revert/:version')
+  @ApiOperation({
+    summary: 'Revert page blocks to a specific revision version',
+  })
+  async revertSitePageVersion(
+    @Param('key') key: string,
+    @Param('pageId') pageId: string,
+    @Param('version', ParseIntPipe) version: number,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.sitesService.revertSitePageVersion(key, pageId, version, user);
   }
 
   @Get(':key/media')

@@ -45,6 +45,17 @@ describe('SitesService', () => {
     },
     page: {
       findMany: jest.fn(),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      delete: jest.fn(),
+    },
+    pageRevision: {
+      create: jest.fn(),
+      findFirst: jest.fn(),
+      findUnique: jest.fn(),
     },
     mediaAsset: {
       findMany: jest.fn(),
@@ -264,6 +275,74 @@ describe('SitesService', () => {
       expect(mockPrisma.formSubmission.update).toHaveBeenCalledWith({
         where: { id: 'sub-1' },
         data: { status: 'SPAM', isSpam: true },
+      });
+    });
+
+    it('createSitePage creates page and revision', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.page.findUnique.mockResolvedValue(null);
+      mockPrisma.page.create.mockResolvedValue({
+        id: 'page-1',
+        siteId: 'site-1',
+        route: '/about',
+        title: 'Tentang Kami',
+        status: 'DRAFT',
+      });
+      mockPrisma.pageRevision.create.mockResolvedValue({ id: 'rev-1' });
+
+      const page = await service.createSitePage('resto-enak', {
+        route: '/about',
+        title: 'Tentang Kami',
+        blocks: [{ type: 'hero' }],
+      });
+
+      expect(page.id).toBe('page-1');
+      expect(mockPrisma.page.create).toHaveBeenCalled();
+      expect(mockPrisma.pageRevision.create).toHaveBeenCalled();
+    });
+
+    it('updateSitePage updates page and adds new revision if blocks changed', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.page.findFirst.mockResolvedValue({
+        id: 'page-1',
+        siteId: 'site-1',
+        route: '/about',
+        title: 'Tentang Kami',
+        blocks: [{ type: 'hero' }],
+        locale: 'id',
+      });
+      mockPrisma.pageRevision.findFirst.mockResolvedValue({ version: 1 });
+      mockPrisma.page.update.mockResolvedValue({
+        id: 'page-1',
+        title: 'Tentang Resto',
+      });
+
+      const updated = await service.updateSitePage('resto-enak', 'page-1', {
+        title: 'Tentang Resto',
+        blocks: [{ type: 'hero', props: { new: true } }],
+      });
+
+      expect(updated.title).toBe('Tentang Resto');
+      expect(mockPrisma.pageRevision.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          version: 2,
+          title: 'Tentang Resto',
+        }) as unknown,
+      });
+    });
+
+    it('deleteSitePage deletes page', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.page.findFirst.mockResolvedValue({
+        id: 'page-1',
+        route: '/about',
+      });
+      mockPrisma.page.delete.mockResolvedValue({ id: 'page-1' });
+
+      const res = await service.deleteSitePage('resto-enak', 'page-1');
+      expect(res.success).toBe(true);
+      expect(mockPrisma.page.delete).toHaveBeenCalledWith({
+        where: { id: 'page-1' },
       });
     });
   });

@@ -91,6 +91,86 @@
         ],
         "type": "object"
       },
+      "CreatePageDto": {
+        "properties": {
+          "blocks": {
+            "description": "Array of visual block objects [{ id, type, props }]",
+            "example": [
+              {
+                "id": "blk-1",
+                "type": "hero",
+                "props": {
+                  "headline": "Halo"
+                }
+              }
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "canonicalUrl": {
+            "example": "https://domain.com/about",
+            "type": "string"
+          },
+          "isHome": {
+            "default": false,
+            "example": false,
+            "type": "boolean"
+          },
+          "locale": {
+            "default": "id",
+            "example": "id",
+            "type": "string"
+          },
+          "metaDescription": {
+            "example": "Deskripsi singkat profil resto...",
+            "type": "string"
+          },
+          "metaTitle": {
+            "example": "Tentang Resto Kami",
+            "type": "string"
+          },
+          "ogImageAssetId": {
+            "example": "asset-uuid-1",
+            "type": "string"
+          },
+          "ogTitle": {
+            "example": "Tentang Kami - Resto",
+            "type": "string"
+          },
+          "robots": {
+            "default": "index,follow",
+            "example": "index,follow",
+            "type": "string"
+          },
+          "route": {
+            "description": "Page route path starting with /",
+            "example": "/about",
+            "type": "string"
+          },
+          "status": {
+            "default": "DRAFT",
+            "enum": [
+              "DRAFT",
+              "PENDING_REVIEW",
+              "SCHEDULED",
+              "PUBLISHED",
+              "ARCHIVED"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "example": "Tentang Kami",
+            "type": "string"
+          }
+        },
+        "required": [
+          "route",
+          "title"
+        ],
+        "type": "object"
+      },
       "CreateSiteDto": {
         "properties": {
           "defaultLocale": {
@@ -274,6 +354,82 @@
           },
           "name": {
             "example": "Article",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UpdatePageDto": {
+        "properties": {
+          "blocks": {
+            "description": "Array of visual block objects [{ id, type, props }]",
+            "example": [
+              {
+                "id": "blk-1",
+                "type": "hero",
+                "props": {
+                  "headline": "Halo"
+                }
+              }
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "canonicalUrl": {
+            "example": "https://domain.com/about",
+            "type": "string"
+          },
+          "isHome": {
+            "default": false,
+            "example": false,
+            "type": "boolean"
+          },
+          "locale": {
+            "default": "id",
+            "example": "id",
+            "type": "string"
+          },
+          "metaDescription": {
+            "example": "Deskripsi singkat profil resto...",
+            "type": "string"
+          },
+          "metaTitle": {
+            "example": "Tentang Resto Kami",
+            "type": "string"
+          },
+          "ogImageAssetId": {
+            "example": "asset-uuid-1",
+            "type": "string"
+          },
+          "ogTitle": {
+            "example": "Tentang Kami - Resto",
+            "type": "string"
+          },
+          "robots": {
+            "default": "index,follow",
+            "example": "index,follow",
+            "type": "string"
+          },
+          "route": {
+            "description": "Page route path starting with /",
+            "example": "/about",
+            "type": "string"
+          },
+          "status": {
+            "default": "DRAFT",
+            "enum": [
+              "DRAFT",
+              "PENDING_REVIEW",
+              "SCHEDULED",
+              "PUBLISHED",
+              "ARCHIVED"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "example": "Tentang Kami",
             "type": "string"
           }
         },
@@ -743,6 +899,205 @@
           }
         ],
         "summary": "List all pages for a site",
+        "tags": [
+          "sites"
+        ]
+      },
+      "post": {
+        "operationId": "SitesController_createSitePage",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePageDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new page under a site",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}/pages/{pageId}": {
+      "delete": {
+        "operationId": "SitesController_deleteSitePage",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete page and all its revisions",
+        "tags": [
+          "sites"
+        ]
+      },
+      "get": {
+        "operationId": "SitesController_findSitePageById",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get page details by ID with revisions history",
+        "tags": [
+          "sites"
+        ]
+      },
+      "patch": {
+        "operationId": "SitesController_updateSitePage",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePageDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update page blocks, title, route, status, or SEO",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/cms/sites/{key}/pages/{pageId}/revert/{version}": {
+      "post": {
+        "operationId": "SitesController_revertSitePageVersion",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revert page blocks to a specific revision version",
         "tags": [
           "sites"
         ]
