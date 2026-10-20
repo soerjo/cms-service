@@ -37,6 +37,12 @@ const STARTER_SITES: SeedSiteDef[] = [
     templateKey: 'jasa-service-profile',
     domain: 'jasa-demo.cms.local',
   },
+  {
+    key: 'kult-barbershop',
+    name: 'KULT Barber & Atelier',
+    templateKey: 'kult-barbershop-profile',
+    domain: 'kult.cms.local',
+  },
 ];
 
 async function seed() {

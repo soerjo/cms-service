@@ -146,6 +146,83 @@ export class TemplateSeederService {
       };
     }
 
+    if (templateKey === 'kult-barbershop-profile') {
+      return {
+        industry: 'barbershop',
+        templateKey: 'kult-barbershop-profile',
+        name: 'KULT Barber & Atelier',
+        description:
+          'Template profil atelier barbering premium dengan menu ritual cukur presisi, kurasi pengalaman atelier bento, studio sanctuary Senopati, dan form reservasi.',
+        defaultLocale: 'id',
+        pages: [
+          {
+            route: '/',
+            title: 'KULT Barber & Atelier — Senopati Sanctuary',
+            isHome: true,
+            status: 'PUBLISHED',
+            metaTitle:
+              'KULT Barber & Atelier | Precision Cuts & Elevated Grooming Senopati',
+            metaDescription:
+              'Heritage barbering meets contemporary atelier precision. Exclusive sanctuary in Senopati, South Jakarta.',
+            blocks: [
+              {
+                id: 'blk-hero-kult',
+                type: 'hero-atelier',
+                props: {
+                  badge: 'Redefining Precision Haircuts & Grooming in Senopati',
+                  headline: 'Precision Cuts. Modern Craft.',
+                  subheadline: 'Elevated Grooming.',
+                  description:
+                    'Welcome to KULT Barber & Atelier, where heritage barbering meets contemporary atelier precision. Experience uncompromising styling in an exclusive sanctuary designed for the modern gentleman.',
+                },
+              },
+            ],
+          },
+          {
+            route: '/services',
+            title: 'Services & Pricing — KULT Barber & Atelier',
+            isHome: false,
+            status: 'PUBLISHED',
+            metaTitle: 'Services & Signature Rituals | KULT Barber & Atelier',
+            metaDescription:
+              'Explore our curated menu of haircut rituals, beard grooming, hot towel treatments, and hair spa.',
+            blocks: [
+              {
+                id: 'blk-services-kult',
+                type: 'service-menu',
+                props: {
+                  headline: 'Curated Services & Pricing',
+                  subheadline: 'Tailored Hair & Beard Artistry',
+                },
+              },
+            ],
+          },
+          {
+            route: '/contact',
+            title: 'Reservations & Sanctuary Location — KULT Barber & Atelier',
+            isHome: false,
+            status: 'PUBLISHED',
+            metaTitle: 'Book Your Atelier Experience | KULT Barber & Atelier',
+            metaDescription:
+              'Visit our sanctuary at Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan. Walk-ins welcome based on artisan availability.',
+            blocks: [
+              {
+                id: 'blk-contact-kult',
+                type: 'contact-sanctuary',
+                props: {
+                  headline: 'Reserve Your Seat & Visit Us',
+                  address:
+                    'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan 12190',
+                  phone: '+62 811-9876-5432',
+                  hours: 'Daily: 10:00 - 21:00 WIB',
+                },
+              },
+            ],
+          },
+        ],
+      };
+    }
+
     return null;
   }
 
