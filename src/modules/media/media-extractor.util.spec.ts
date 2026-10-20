@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'bun:test';
 import { extractMediaReferences } from './media-extractor.util.js';
 
 describe('extractMediaReferences', () => {
