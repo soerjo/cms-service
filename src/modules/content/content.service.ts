@@ -8,12 +8,15 @@ import {
 } from './dto/update-content-entry.dto.js';
 import { validateContentData } from './content-validation.util.js';
 import { ContentStatus } from '@prisma/client';
+import { MediaRepository } from '../media/media.repository.js';
+import { extractMediaReferences } from '../media/media-extractor.util.js';
 
 @Injectable()
 export class ContentService {
   constructor(
     private contentRepo: ContentRepository,
     private contentTypesRepo: ContentTypesRepository,
+    private mediaRepo: MediaRepository,
   ) {}
 
   private async resolveContentType(contentTypeIdOrKey: string) {
@@ -39,6 +42,12 @@ export class ContentService {
     // Create initial version 1
     const latestVer = await this.contentRepo.getLatestVersionNumber(entry.id);
     await this.contentRepo.update(entry.id, dto.data, latestVer + 1, userId);
+
+    // Verify & attach media references used in entry data
+    const mediaRefs = extractMediaReferences(dto.data);
+    if (mediaRefs.length > 0) {
+      await this.mediaRepo.markAttached(mediaRefs, entry.id);
+    }
 
     return this.contentRepo.findById(entry.id);
   }
@@ -87,7 +96,15 @@ export class ContentService {
     }
 
     const latestVer = await this.contentRepo.getLatestVersionNumber(id);
-    return this.contentRepo.update(id, mergedData, latestVer + 1, userId);
+    const updated = await this.contentRepo.update(id, mergedData, latestVer + 1, userId);
+
+    // Verify & attach media references used in updated entry data
+    const mediaRefs = extractMediaReferences(mergedData);
+    if (mediaRefs.length > 0) {
+      await this.mediaRepo.markAttached(mediaRefs, id);
+    }
+
+    return updated;
   }
 
   async publish(id: string, userId: string, opts?: { scheduledAt?: Date }) {

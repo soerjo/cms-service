@@ -25,8 +25,9 @@ export class MediaRepository {
     });
   }
 
-  async findAll(skip?: number, take?: number) {
+  async findAll(skip?: number, take?: number, includeDeleted = false) {
     return this.prisma.mediaAsset.findMany({
+      where: includeDeleted ? undefined : { deletedAt: null },
       skip,
       take,
       orderBy: { createdAt: 'desc' },
@@ -55,5 +56,47 @@ export class MediaRepository {
       where: { id },
     });
     return item;
+  }
+
+  async softDelete(id: string) {
+    return this.prisma.mediaAsset.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  async markAttached(objectKeysOrFileIds: string[], entryId: string) {
+    if (objectKeysOrFileIds.length === 0) return { count: 0 };
+    return this.prisma.mediaAsset.updateMany({
+      where: {
+        OR: [
+          { objectKey: { in: objectKeysOrFileIds } },
+          { fileId: { in: objectKeysOrFileIds } },
+        ],
+      },
+      data: {
+        isAttached: true,
+        attachedEntryId: entryId,
+        deletedAt: null,
+      },
+    });
+  }
+
+  async findUnattachedForSoftDelete(olderThan: Date) {
+    return this.prisma.mediaAsset.findMany({
+      where: {
+        isAttached: false,
+        deletedAt: null,
+        createdAt: { lte: olderThan },
+      },
+    });
+  }
+
+  async findSoftDeletedForHardDelete(deletedBefore: Date) {
+    return this.prisma.mediaAsset.findMany({
+      where: {
+        deletedAt: { lte: deletedBefore },
+      },
+    });
   }
 }

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ContentService } from './content.service.js';
 import { ContentRepository } from './content.repository.js';
 import { ContentTypesRepository } from '../content-types/content-types.repository.js';
+import { MediaRepository } from '../media/media.repository.js';
 import { NotFoundException } from '@nestjs/common';
 
 describe('ContentService (Delete & Remove)', () => {
@@ -22,6 +23,12 @@ describe('ContentService (Delete & Remove)', () => {
         {
           provide: ContentTypesRepository,
           useValue: {},
+        },
+        {
+          provide: MediaRepository,
+          useValue: {
+            markAttached: jest.fn().mockResolvedValue({ count: 1 }),
+          },
         },
       ],
     }).compile();

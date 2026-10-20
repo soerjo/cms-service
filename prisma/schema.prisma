@@ -286,24 +286,28 @@ model ContentTag {
 }
 
 model MediaAsset {
-  id           String   @id @default(uuid())
-  siteId       String
-  fileId       String   @unique
-  objectKey    String   @unique
-  originalName String
-  mimeType     String
-  sizeBytes    Int
-  url          String?
-  altText      String?
-  width        Int?
-  height       Int?
-  focalPoint   Json?
-  uploadedById String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String    @id @default(uuid())
+  siteId            String
+  fileId            String    @unique
+  objectKey         String    @unique
+  originalName      String
+  mimeType          String
+  sizeBytes         Int
+  url               String?
+  altText           String?
+  width             Int?
+  height            Int?
+  focalPoint        Json?
+  uploadedById      String
+  isAttached        Boolean   @default(false)
+  attachedEntryId   String?
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  site         Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site              Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId, createdAt])
+  @@index([isAttached, deletedAt])
   @@map("media_assets")
 }
