@@ -4,9 +4,10 @@ import { ContentService } from './content.service.js';
 import { ContentRepository } from './content.repository.js';
 import { ScheduledPublishService } from './scheduled-publish.service.js';
 import { ContentTypesModule } from '../content-types/content-types.module.js';
+import { MediaModule } from '../media/media.module.js';
 
 @Module({
-  imports: [ContentTypesModule],
+  imports: [ContentTypesModule, MediaModule],
   controllers: [ContentController],
   providers: [ContentService, ContentRepository, ScheduledPublishService],
   exports: [ContentService, ContentRepository],
