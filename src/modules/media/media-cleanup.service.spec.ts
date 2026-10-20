@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { MediaCleanupService } from './media-cleanup.service.js';
 import { MediaRepository } from './media.repository.js';
 import { HttpFileServiceTokenProvider } from './file-service.client.js';
@@ -6,29 +5,46 @@ import { ConfigService } from '@nestjs/config';
 
 describe('MediaCleanupService', () => {
   let service: MediaCleanupService;
-  let repo: any;
-  let tokenProvider: any;
-  let configService: any;
+  let repo: {
+    findUnattachedForSoftDelete: jest.Mock;
+    softDelete: jest.Mock;
+    findSoftDeletedForHardDelete: jest.Mock;
+    delete: jest.Mock;
+  };
+  let tokenProvider: {
+    fetchWithAuth: jest.Mock;
+  };
+  let configService: {
+    get: jest.Mock;
+  };
 
   beforeEach(() => {
     repo = {
-      findUnattachedForSoftDelete: mock(async () => [
+      findUnattachedForSoftDelete: jest.fn().mockResolvedValue([
         { id: 'm-1', fileId: 'f-1', isAttached: false },
         { id: 'm-2', fileId: 'f-2', isAttached: false },
       ]),
-      softDelete: mock(async (id: string) => ({ id, deletedAt: new Date() })),
-      findSoftDeletedForHardDelete: mock(async () => [
-        { id: 'm-expired-1', fileId: 'f-expired-1', deletedAt: new Date() },
-      ]),
-      delete: mock(async (id: string) => ({ id })),
+      softDelete: jest
+        .fn()
+        .mockImplementation((id: string) =>
+          Promise.resolve({ id, deletedAt: new Date() }),
+        ),
+      findSoftDeletedForHardDelete: jest
+        .fn()
+        .mockResolvedValue([
+          { id: 'm-expired-1', fileId: 'f-expired-1', deletedAt: new Date() },
+        ]),
+      delete: jest
+        .fn()
+        .mockImplementation((id: string) => Promise.resolve({ id })),
     };
 
     tokenProvider = {
-      fetchWithAuth: mock(async () => ({ ok: true, status: 200 })),
+      fetchWithAuth: jest.fn().mockResolvedValue({ ok: true, status: 200 }),
     };
 
     configService = {
-      get: mock((key: string) => {
+      get: jest.fn().mockImplementation((key: string) => {
         if (key === 'FILE_SERVICE_URL') return 'http://file-service:3100/api';
         return null;
       }),

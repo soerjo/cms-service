@@ -17,7 +17,11 @@ export function extractMediaReferences(payload: unknown): string[] {
       }
 
       // 2. Direct URLs or paths
-      if (node.includes('/files/') || node.includes('/uploads/') || node.includes('/media/')) {
+      if (
+        node.includes('/files/') ||
+        node.includes('/uploads/') ||
+        node.includes('/media/')
+      ) {
         extractFromUrl(node);
       }
       return;
@@ -31,7 +35,9 @@ export function extractMediaReferences(payload: unknown): string[] {
     }
 
     if (typeof node === 'object') {
-      for (const [key, val] of Object.entries(node as Record<string, unknown>)) {
+      for (const [key, val] of Object.entries(
+        node as Record<string, unknown>,
+      )) {
         if (key === 'fileId' || key === 'mediaId' || key === 'objectKey') {
           if (typeof val === 'string' && val.trim()) {
             references.add(val.trim());
@@ -48,7 +54,8 @@ export function extractMediaReferences(payload: unknown): string[] {
       const clean = url.split('?')[0].split('#')[0];
       const segments = clean.split('/');
       const last = segments[segments.length - 1];
-      const secondLast = segments.length > 1 ? segments[segments.length - 2] : null;
+      const secondLast =
+        segments.length > 1 ? segments[segments.length - 2] : null;
 
       if (last && last !== 'url') {
         references.add(last);

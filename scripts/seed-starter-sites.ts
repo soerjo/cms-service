@@ -11,14 +11,6 @@ async function importFromDistOrSrc<T>(
   }
 }
 
-const { AppModule } = await importFromDistOrSrc<
-  typeof import('../src/app.module.js')
->('../dist/app.module.js', '../src/app.module.js');
-
-const { SitesService } = await importFromDistOrSrc<
-  typeof import('../src/modules/sites/sites.service.js')
->('../dist/modules/sites/sites.service.js', '../src/modules/sites/sites.service.js');
-
 interface SeedSiteDef {
   key: string;
   name: string;
@@ -48,6 +40,14 @@ const STARTER_SITES: SeedSiteDef[] = [
 ];
 
 async function seed() {
+  const { AppModule } = await importFromDistOrSrc<
+    typeof import('../src/app.module.js')
+  >('../dist/app.module.js', '../src/app.module.js');
+
+  const { SitesService } = await importFromDistOrSrc<
+    typeof import('../src/modules/sites/sites.service.js')
+  >('../dist/modules/sites/sites.service.js', '../src/modules/sites/sites.service.js');
+
   process.env.NODE_ENV = process.env.NODE_ENV || 'development';
   process.env.FILE_SERVICE_URL =
     process.env.FILE_SERVICE_URL || 'https://dummy.fileservice.com';
@@ -56,7 +56,7 @@ async function seed() {
   process.env.FILE_SERVICE_PASSWORD =
     process.env.FILE_SERVICE_PASSWORD || 'dummyPassword';
   process.env.DATABASE_URL =
-    process.env.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db';
+    process.env.DATABASE_URL || 'postgresql://user:***@localhost:5432/db';
   process.env.UMS_JWT_PUBLIC_KEY =
     process.env.UMS_JWT_PUBLIC_KEY ||
     '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Y8+test\n-----END PUBLIC KEY-----';
