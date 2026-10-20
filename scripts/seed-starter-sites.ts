@@ -11,14 +11,6 @@ async function importFromDistOrSrc<T>(
   }
 }
 
-const { AppModule } = await importFromDistOrSrc<
-  typeof import('../src/app.module.js')
->('../dist/app.module.js', '../src/app.module.js');
-
-const { SitesService } = await importFromDistOrSrc<
-  typeof import('../src/modules/sites/sites.service.js')
->('../dist/modules/sites/sites.service.js', '../src/modules/sites/sites.service.js');
-
 interface SeedSiteDef {
   key: string;
   name: string;
@@ -48,6 +40,17 @@ const STARTER_SITES: SeedSiteDef[] = [
 ];
 
 async function seed() {
+  const { AppModule } = await importFromDistOrSrc<
+    typeof import('../src/app.module.js')
+  >('../dist/app.module.js', '../src/app.module.js');
+
+  const { SitesService } = await importFromDistOrSrc<
+    typeof import('../src/modules/sites/sites.service.js')
+  >(
+    '../dist/modules/sites/sites.service.js',
+    '../src/modules/sites/sites.service.js',
+  );
+
   process.env.NODE_ENV = process.env.NODE_ENV || 'development';
   process.env.FILE_SERVICE_URL =
     process.env.FILE_SERVICE_URL || 'https://dummy.fileservice.com';

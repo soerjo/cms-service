@@ -13,6 +13,11 @@ import { MediaCleanupService } from './media-cleanup.service.js';
     HttpFileServiceTokenProvider,
     MediaCleanupService,
   ],
-  exports: [MediaService, MediaRepository, HttpFileServiceTokenProvider, MediaCleanupService],
+  exports: [
+    MediaService,
+    MediaRepository,
+    HttpFileServiceTokenProvider,
+    MediaCleanupService,
+  ],
 })
 export class MediaModule {}

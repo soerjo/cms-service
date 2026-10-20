@@ -45,12 +45,16 @@ export class MediaCleanupService {
         await this.repo.softDelete(asset.id);
         count++;
       } catch (err) {
-        this.logger.warn(`Failed to soft-delete unattached media ${asset.id}: ${err}`);
+        this.logger.warn(
+          `Failed to soft-delete unattached media ${asset.id}: ${err}`,
+        );
       }
     }
 
     if (count > 0) {
-      this.logger.log(`Soft-deleted ${count} unattached media assets older than ${daysThreshold} days.`);
+      this.logger.log(
+        `Soft-deleted ${count} unattached media assets older than ${daysThreshold} days.`,
+      );
     }
     return count;
   }
@@ -73,16 +77,21 @@ export class MediaCleanupService {
         if (fileServiceUrl && asset.fileId) {
           const deleteEndpoint = `${fileServiceUrl.replace(/\/$/, '')}/files/${asset.fileId}`;
           try {
-            const response = await this.tokenProvider.fetchWithAuth(deleteEndpoint, {
-              method: 'DELETE',
-            });
+            const response = await this.tokenProvider.fetchWithAuth(
+              deleteEndpoint,
+              {
+                method: 'DELETE',
+              },
+            );
             if (response.status !== 404 && !response.ok) {
               this.logger.warn(
                 `Upstream MinIO delete returned status ${response.status} for fileId ${asset.fileId}`,
               );
             }
           } catch (err) {
-            this.logger.warn(`Failed calling MinIO delete for fileId ${asset.fileId}: ${err}`);
+            this.logger.warn(
+              `Failed calling MinIO delete for fileId ${asset.fileId}: ${err}`,
+            );
           }
         }
 
@@ -95,7 +104,9 @@ export class MediaCleanupService {
     }
 
     if (count > 0) {
-      this.logger.log(`Hard-deleted ${count} expired media assets from MinIO & database.`);
+      this.logger.log(
+        `Hard-deleted ${count} expired media assets from MinIO & database.`,
+      );
     }
     return count;
   }

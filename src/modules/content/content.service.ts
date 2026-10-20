@@ -96,7 +96,12 @@ export class ContentService {
     }
 
     const latestVer = await this.contentRepo.getLatestVersionNumber(id);
-    const updated = await this.contentRepo.update(id, mergedData, latestVer + 1, userId);
+    const updated = await this.contentRepo.update(
+      id,
+      mergedData,
+      latestVer + 1,
+      userId,
+    );
 
     // Verify & attach media references used in updated entry data
     const mediaRefs = extractMediaReferences(mergedData);

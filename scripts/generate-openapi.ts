@@ -5,11 +5,17 @@ import { dirname, resolve } from 'node:path';
 
 // Provide required environment variables for Nest bootstrap BEFORE importing AppModule
 process.env.NODE_ENV = 'test';
-process.env.FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || 'https://dummy.fileservice.com';
-process.env.FILE_SERVICE_EMAIL = process.env.FILE_SERVICE_EMAIL || 'dummy@fileservice.com';
-process.env.FILE_SERVICE_PASSWORD = process.env.FILE_SERVICE_PASSWORD || 'dummyPassword';
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db';
-process.env.UMS_JWT_PUBLIC_KEY = process.env.UMS_JWT_PUBLIC_KEY || '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Y8+test\n-----END PUBLIC KEY-----';
+process.env.FILE_SERVICE_URL =
+  process.env.FILE_SERVICE_URL || 'https://dummy.fileservice.com';
+process.env.FILE_SERVICE_EMAIL =
+  process.env.FILE_SERVICE_EMAIL || 'dummy@fileservice.com';
+process.env.FILE_SERVICE_PASSWORD =
+  process.env.FILE_SERVICE_PASSWORD || 'dummyPassword';
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db';
+process.env.UMS_JWT_PUBLIC_KEY =
+  process.env.UMS_JWT_PUBLIC_KEY ||
+  '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Y8+test\n-----END PUBLIC KEY-----';
 
 async function generate() {
   const { AppModule } = await import('../src/app.module.js');
