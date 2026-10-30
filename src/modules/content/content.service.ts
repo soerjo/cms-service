@@ -6,7 +6,10 @@ import {
   UpdateContentEntryDto,
   UpdateContentTagsDto,
 } from './dto/update-content-entry.dto.js';
-import { validateContentData } from './content-validation.util.js';
+import {
+  validateContentData,
+  sanitizeAndValidateContentData,
+} from './content-validation.util.js';
 import { ContentStatus } from '@prisma/client';
 import { MediaRepository } from '../media/media.repository.js';
 import { extractMediaReferences } from '../media/media-extractor.util.js';
@@ -31,20 +34,29 @@ export class ContentService {
   async create(dto: CreateContentEntryDto, userId: string) {
     const contentType = await this.resolveContentType(dto.contentTypeId);
 
-    // Validate data against field defs
-    validateContentData(
+    // Validate and sanitize data against field defs
+    const sanitizedData = sanitizeAndValidateContentData(
       contentType.fields as unknown as import('./content-validation.util.js').FieldDefinition[],
       dto.data,
     );
 
-    const entry = await this.contentRepo.create(dto, userId, contentType.id);
+    const entry = await this.contentRepo.create(
+      { ...dto, data: sanitizedData },
+      userId,
+      contentType.id,
+    );
 
     // Create initial version 1
     const latestVer = await this.contentRepo.getLatestVersionNumber(entry.id);
-    await this.contentRepo.update(entry.id, dto.data, latestVer + 1, userId);
+    await this.contentRepo.update(
+      entry.id,
+      sanitizedData,
+      latestVer + 1,
+      userId,
+    );
 
     // Verify & attach media references used in entry data
-    const mediaRefs = extractMediaReferences(dto.data);
+    const mediaRefs = extractMediaReferences(sanitizedData);
     if (mediaRefs.length > 0) {
       await this.mediaRepo.markAttached(mediaRefs, entry.id);
     }
@@ -84,12 +96,12 @@ export class ContentService {
       existing.contentTypeId,
     );
 
-    const mergedData = dto.data
+    let mergedData = dto.data
       ? { ...(existing.data as Record<string, unknown>), ...dto.data }
       : (existing.data as Record<string, unknown>);
 
     if (dto.data) {
-      validateContentData(
+      mergedData = sanitizeAndValidateContentData(
         contentType.fields as unknown as import('./content-validation.util.js').FieldDefinition[],
         mergedData,
       );

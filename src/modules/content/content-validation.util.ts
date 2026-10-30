@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import sanitizeHtml from 'sanitize-html';
 
 export interface FieldDefinition {
   key: string;
@@ -18,15 +19,71 @@ export interface FieldDefinition {
   options?: string[];
 }
 
-export function validateContentData(
+export const SANITIZE_RICH_TEXT_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'blockquote',
+    'p',
+    'a',
+    'ul',
+    'ol',
+    'nl',
+    'li',
+    'b',
+    'i',
+    'strong',
+    'em',
+    'strike',
+    'code',
+    'hr',
+    'br',
+    'div',
+    'table',
+    'thead',
+    'caption',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'pre',
+    'img',
+    'figure',
+    'figcaption',
+    'span',
+    'sub',
+    'sup',
+  ],
+  allowedAttributes: {
+    a: ['href', 'name', 'target', 'rel', 'title', 'class'],
+    img: ['src', 'alt', 'title', 'width', 'height', 'loading', 'class'],
+    '*': ['class', 'id'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+};
+
+export function sanitizeRichText(html: string): string {
+  return sanitizeHtml(html, SANITIZE_RICH_TEXT_OPTIONS);
+}
+
+export function sanitizeAndValidateContentData(
   fields: FieldDefinition[],
   data: Prisma.JsonValue,
-) {
+): Record<string, Prisma.JsonValue> {
   if (!fields || !Array.isArray(fields)) {
-    return;
+    return (
+      data && typeof data === 'object' && !Array.isArray(data)
+        ? { ...data }
+        : {}
+    ) as Record<string, Prisma.JsonValue>;
   }
+
   const payloadData = (
-    data && typeof data === 'object' && !Array.isArray(data) ? data : {}
+    data && typeof data === 'object' && !Array.isArray(data) ? { ...data } : {}
   ) as Record<string, Prisma.JsonValue>;
 
   for (const field of fields) {
@@ -44,8 +101,15 @@ export function validateContentData(
     }
 
     switch (field.type) {
-      case 'text':
       case 'rich_text':
+        if (typeof val !== 'string') {
+          throw new BadRequestException(
+            `Field '${field.label}' must be a string`,
+          );
+        }
+        payloadData[field.key] = sanitizeRichText(val);
+        break;
+      case 'text':
       case 'media':
       case 'reference':
       case 'select':
@@ -103,4 +167,13 @@ export function validateContentData(
         break;
     }
   }
+
+  return payloadData;
+}
+
+export function validateContentData(
+  fields: FieldDefinition[],
+  data: Prisma.JsonValue,
+) {
+  sanitizeAndValidateContentData(fields, data);
 }
