@@ -20,7 +20,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
   app.setGlobalPrefix('api');
 
   const winstonLogger = app.get<Logger>(WINSTON_MODULE_PROVIDER);
