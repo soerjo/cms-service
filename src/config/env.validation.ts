@@ -71,6 +71,13 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   UMS_JWKS_CACHE_TTL_SECONDS?: string;
+
+  // --- MCP service-to-service auth (x-mcp-api-key) ---
+  // Optional. When unset the guard falls back to the local-dev key
+  // 'mcp-local-dev-key' outside production, and rejects MCP auth in production.
+  @IsString()
+  @IsOptional()
+  CMS_MCP_API_KEY?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
