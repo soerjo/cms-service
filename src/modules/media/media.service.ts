@@ -61,7 +61,7 @@ export class MediaService {
     const mimeType = (fileDto['mimeType'] as string) || file.mimetype;
     const sizeBytes = (fileDto['size'] as number) || file.size;
 
-    return this.repo.create({
+    const created = await this.repo.create({
       fileId,
       objectKey,
       originalName,
@@ -69,6 +69,18 @@ export class MediaService {
       sizeBytes,
       uploadedById,
     });
+
+    const url =
+      (await this.fetchPresignedUrl(fileId)) ??
+      `/api/delivery/v1/media/${encodeURIComponent(objectKey)}`;
+    return { ...created, url };
+  }
+
+  async uploadMultiple(files: Express.Multer.File[], uploadedById: string) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+    return Promise.all(files.map((file) => this.upload(file, uploadedById)));
   }
 
   async findAll(skip?: number, take?: number) {
