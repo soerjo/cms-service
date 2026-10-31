@@ -14,6 +14,12 @@ export class MediaService {
   ) {}
 
   async upload(file: Express.Multer.File, uploadedById: string) {
+    if (file.mimetype.startsWith('video/')) {
+      throw new BadRequestException(
+        'Direct video uploads are not supported to prevent server overload. Please host your video on YouTube or Vimeo and embed the link or iframe instead.',
+      );
+    }
+
     const allowedMimes = [
       'image/jpeg',
       'image/png',
