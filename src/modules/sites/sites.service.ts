@@ -188,14 +188,6 @@ export class SitesService {
     });
   }
 
-  async findSitePages(key: string) {
-    const site = await this.findSiteByKey(key);
-    return this.prisma.page.findMany({
-      where: { siteId: site.id },
-      orderBy: [{ isHome: 'desc' }, { route: 'asc' }],
-    });
-  }
-
   async findSiteMedia(key: string) {
     const site = await this.findSiteByKey(key);
     return this.prisma.mediaAsset.findMany({

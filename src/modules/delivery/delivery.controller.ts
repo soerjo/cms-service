@@ -114,58 +114,6 @@ export class DeliveryController {
     );
   }
 
-  @Get('pages')
-  @Header(
-    'Cache-Control',
-    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
-  )
-  @ApiOperation({ summary: 'List all published pages for a site' })
-  @ApiQuery({ name: 'siteKey', required: false })
-  @ApiQuery({ name: 'locale', required: false })
-  getPublishedPages(
-    @Param('siteKey') pathSiteKey?: string,
-    @Query('siteKey') querySiteKey?: string,
-    @Headers('x-site-key') headerSiteKey?: string,
-    @Query('locale') locale?: string,
-  ) {
-    const siteKey = this.extractSiteKey(
-      pathSiteKey,
-      querySiteKey,
-      headerSiteKey,
-    );
-    return this.deliveryService.findPublishedPages(siteKey, locale);
-  }
-
-  @Get('pages/*route')
-  @Header(
-    'Cache-Control',
-    'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
-  )
-  @ApiOperation({ summary: 'Get published page by route' })
-  @ApiQuery({ name: 'siteKey', required: false })
-  @ApiQuery({ name: 'locale', required: false })
-  getPublishedPageByRoute(
-    @Param('route') routeParam: string,
-    @Param('siteKey') pathSiteKey?: string,
-    @Query('siteKey') querySiteKey?: string,
-    @Headers('x-site-key') headerSiteKey?: string,
-    @Query('locale') locale?: string,
-  ) {
-    const siteKey = this.extractSiteKey(
-      pathSiteKey,
-      querySiteKey,
-      headerSiteKey,
-    );
-    const normalizedRoute = routeParam.startsWith('/')
-      ? routeParam
-      : `/${routeParam}`;
-    return this.deliveryService.findPublishedPageByRoute(
-      normalizedRoute,
-      siteKey,
-      locale,
-    );
-  }
-
   @Get('categories')
   @Header(
     'Cache-Control',

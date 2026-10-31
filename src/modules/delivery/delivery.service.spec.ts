@@ -5,7 +5,7 @@ import { CategoriesRepository } from '../categories/categories.repository.js';
 import { TagsRepository } from '../tags/tags.repository.js';
 import { MediaService } from '../media/media.service.js';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { ContentStatus, PageStatus, SiteStatus } from '@prisma/client';
+import { ContentStatus, SiteStatus } from '@prisma/client';
 
 describe('DeliveryService (Multi-Site Scoping)', () => {
   let service: DeliveryService;
@@ -216,33 +216,6 @@ describe('DeliveryService (Multi-Site Scoping)', () => {
     });
   });
 
-  describe('findPublishedPages scoping', () => {
-    it('retrieves published pages filtered by siteId', async () => {
-      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
-      const mockPages = [
-        {
-          id: 'page-1',
-          route: '/',
-          title: 'Beranda',
-          status: PageStatus.PUBLISHED,
-        },
-      ];
-      mockPrisma.page.findMany.mockResolvedValue(mockPages);
-
-      const pages = await service.findPublishedPages('toko-kopi', 'id');
-      expect(pages).toEqual(mockPages);
-      expect(mockPrisma.page.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            siteId: 'site-uuid-1',
-            status: PageStatus.PUBLISHED,
-            locale: 'id',
-          },
-        }),
-      );
-    });
-  });
-
   describe('submitForm', () => {
     it('creates a form submission record scoped to site', async () => {
       mockPrisma.site.findUnique.mockResolvedValue(mockSite);
@@ -288,16 +261,8 @@ describe('DeliveryService (Multi-Site Scoping)', () => {
   });
 
   describe('SEO generator (sitemap & robots)', () => {
-    it('generates valid sitemap XML including pages and content', async () => {
+    it('generates valid sitemap XML including root and content', async () => {
       mockPrisma.site.findUnique.mockResolvedValue(mockSite);
-      mockPrisma.page.findMany.mockResolvedValue([
-        {
-          route: '/',
-          isHome: true,
-          updatedAt: new Date('2026-10-19T00:00:00Z'),
-          publishedAt: new Date('2026-10-19T00:00:00Z'),
-        },
-      ]);
       mockPrisma.contentEntry.findMany.mockResolvedValue([
         {
           slug: 'promo-kopi',

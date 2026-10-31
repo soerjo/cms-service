@@ -222,14 +222,6 @@ describe('SitesService', () => {
   });
 
   describe('sub-resources', () => {
-    it('findSitePages returns pages for site', async () => {
-      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
-      mockPrisma.page.findMany.mockResolvedValue([{ id: 'page-1' }]);
-
-      const pages = await service.findSitePages('resto-enak');
-      expect(pages).toEqual([{ id: 'page-1' }]);
-    });
-
     it('findSiteSubmissions returns paginated submissions', async () => {
       mockPrisma.site.findUnique.mockResolvedValue(mockSite);
       mockPrisma.formSubmission.findMany.mockResolvedValue([

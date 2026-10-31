@@ -26,7 +26,6 @@ describe('SitesController', () => {
     findSiteByKey: jest.fn(),
     updateSite: jest.fn(),
     deleteSite: jest.fn(),
-    findSitePages: jest.fn(),
     findSiteMedia: jest.fn(),
     findSiteMembers: jest.fn(),
     findSiteSubmissions: jest.fn(),
@@ -100,12 +99,8 @@ describe('SitesController', () => {
   });
 
   it('delegates sub-resources listing', async () => {
-    mockSitesService.findSitePages.mockResolvedValue([]);
     mockSitesService.findSiteMedia.mockResolvedValue([]);
     mockSitesService.findSiteMembers.mockResolvedValue([]);
-
-    await controller.findSitePages('resto-enak');
-    expect(mockSitesService.findSitePages).toHaveBeenCalledWith('resto-enak');
 
     await controller.findSiteMedia('resto-enak');
     expect(mockSitesService.findSiteMedia).toHaveBeenCalledWith('resto-enak');
