@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   UseGuards,
-  ParseIntPipe,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -49,13 +48,12 @@ export class ContentController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update content entry data (creates new version)' })
+  @ApiOperation({ summary: 'Update content entry data' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateContentEntryDto,
-    @CurrentUser() user: AuthUser,
   ) {
-    return this.contentService.update(id, dto, user.id);
+    return this.contentService.update(id, dto);
   }
 
   @Post(':id/publish')
@@ -89,33 +87,6 @@ export class ContentController {
   @ApiOperation({ summary: 'Archive content entry' })
   archive(@Param('id', ParseUUIDPipe) id: string) {
     return this.contentService.archive(id);
-  }
-
-  @Get([':id/versions', ':id/revisions'])
-  @ApiOperation({ summary: 'List all versions/revisions of a content entry' })
-  getVersions(@Param('id', ParseUUIDPipe) id: string) {
-    return this.contentService.getVersions(id);
-  }
-
-  @Get([':id/versions/:version', ':id/revisions/:version'])
-  @ApiOperation({ summary: 'Get specific version/revision of a content entry' })
-  getVersionByNumber(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('version', ParseIntPipe) version: number,
-  ) {
-    return this.contentService.getVersionByNumber(id, version);
-  }
-
-  @Post([':id/versions/:version/restore', ':id/revert/:version'])
-  @ApiOperation({
-    summary: 'Restore/revert a specific version as a new draft version',
-  })
-  restoreVersion(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('version', ParseIntPipe) version: number,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.contentService.restoreVersion(id, version, user.id);
   }
 
   @Delete(':id')

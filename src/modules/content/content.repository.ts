@@ -79,7 +79,6 @@ export class ContentRepository {
       include: {
         contentType: true,
         tags: { include: { tag: true } },
-        versions: { orderBy: { version: 'desc' } },
       },
     });
     if (!entry) {
@@ -88,36 +87,16 @@ export class ContentRepository {
     return entry;
   }
 
-  async update(
-    id: string,
-    data: Record<string, any>,
-    newVersionNumber?: number,
-    userId?: string,
-  ) {
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.contentEntry.update({
-        where: { id },
-        data: {
-          data: data,
-        },
-        include: {
-          contentType: true,
-          tags: { include: { tag: true } },
-        },
-      });
-
-      if (newVersionNumber && userId) {
-        await tx.contentVersion.create({
-          data: {
-            entryId: id,
-            version: newVersionNumber,
-            data: data,
-            createdById: userId,
-          },
-        });
-      }
-
-      return updated;
+  async update(id: string, data: Record<string, any>) {
+    return this.prisma.contentEntry.update({
+      where: { id },
+      data: {
+        data: data,
+      },
+      include: {
+        contentType: true,
+        tags: { include: { tag: true } },
+      },
     });
   }
 
@@ -164,40 +143,6 @@ export class ContentRepository {
         tags: { include: { tag: true } },
       },
     });
-  }
-
-  async getVersions(entryId: string) {
-    await this.findById(entryId);
-    return this.prisma.contentVersion.findMany({
-      where: { entryId },
-      orderBy: { version: 'desc' },
-    });
-  }
-
-  async getVersionByNumber(entryId: string, versionNumber: number) {
-    await this.findById(entryId);
-    const version = await this.prisma.contentVersion.findUnique({
-      where: {
-        entryId_version: {
-          entryId,
-          version: versionNumber,
-        },
-      },
-    });
-    if (!version) {
-      throw new NotFoundException(
-        `Version ${versionNumber} for entry ${entryId} not found`,
-      );
-    }
-    return version;
-  }
-
-  async getLatestVersionNumber(entryId: string): Promise<number> {
-    const latest = await this.prisma.contentVersion.findFirst({
-      where: { entryId },
-      orderBy: { version: 'desc' },
-    });
-    return latest ? latest.version : 0;
   }
 
   async delete(id: string) {
