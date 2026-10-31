@@ -1766,6 +1766,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive search across slug and JSONB content data",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2558,6 +2567,15 @@
             "name": "slug",
             "required": false,
             "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive search across slug and JSONB content data",
             "schema": {
               "type": "string"
             }

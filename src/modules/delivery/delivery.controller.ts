@@ -50,6 +50,11 @@ export class DeliveryController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'tag', required: false })
   @ApiQuery({ name: 'slug', required: false })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Case-insensitive search across slug and JSONB content data',
+  })
   getPublishedContent(
     @Param('siteKey') pathSiteKey?: string,
     @Query('siteKey') querySiteKey?: string,
@@ -60,6 +65,7 @@ export class DeliveryController {
     @Query('limit') limit?: string,
     @Query('tag') tag?: string,
     @Query('slug') slug?: string,
+    @Query('search') search?: string,
   ) {
     const siteKey = this.extractSiteKey(
       pathSiteKey,
@@ -74,6 +80,7 @@ export class DeliveryController {
       limit: limit ? Number(limit) : undefined,
       tag,
       slug,
+      search,
     });
   }
 

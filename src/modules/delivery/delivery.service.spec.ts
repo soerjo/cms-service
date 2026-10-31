@@ -144,6 +144,35 @@ describe('DeliveryService (Multi-Site Scoping)', () => {
         }),
       );
     });
+
+    it('filters query by search keyword across slug and jsonb data', async () => {
+      mockPrisma.site.findUnique.mockResolvedValue(mockSite);
+      mockPrisma.contentEntry.findMany.mockResolvedValue([]);
+      mockPrisma.contentEntry.count.mockResolvedValue(0);
+
+      await service.findPublishedContent({
+        siteKey: 'toko-kopi',
+        search: 'pomade',
+      });
+
+      expect(mockPrisma.contentEntry.findMany).toHaveBeenCalledWith({
+        where: {
+          siteId: 'site-uuid-1',
+          status: ContentStatus.PUBLISHED,
+          OR: [
+            { slug: { contains: 'pomade', mode: 'insensitive' } },
+            { data: { string_contains: 'pomade' } },
+          ],
+        },
+        skip: 0,
+        take: 10,
+        orderBy: { publishedAt: 'desc' },
+        include: {
+          contentType: true,
+          tags: { include: { tag: true } },
+        },
+      });
+    });
   });
 
   describe('findPublishedBySlug scoping', () => {

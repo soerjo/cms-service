@@ -50,6 +50,7 @@ export class DeliveryService {
     limit?: number;
     tag?: string;
     slug?: string;
+    search?: string;
   }) {
     const site = await this.resolveSite(query.siteKey);
     const page = query.page && query.page > 0 ? query.page : 1;
@@ -88,6 +89,14 @@ export class DeliveryService {
           },
         },
       };
+    }
+
+    if (query.search && query.search.trim()) {
+      const term = query.search.trim();
+      where.OR = [
+        { slug: { contains: term, mode: 'insensitive' } },
+        { data: { string_contains: term } },
+      ];
     }
 
     const [items, total] = await Promise.all([
