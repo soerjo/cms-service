@@ -24,6 +24,7 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
+      hsts: false,
     }),
   );
   app.setGlobalPrefix('api');
