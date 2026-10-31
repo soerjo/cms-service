@@ -1316,7 +1316,7 @@
             "bearer": []
           }
         ],
-        "summary": "Update content entry data (creates new version)",
+        "summary": "Update content entry data",
         "tags": [
           "content"
         ]
@@ -1535,7 +1535,7 @@
             "bearer": []
           }
         ],
-        "summary": "Update content entry data (creates new version)",
+        "summary": "Update content entry data",
         "tags": [
           "content"
         ]
@@ -2335,6 +2335,22 @@
       "post": {
         "operationId": "MediaController_upload",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
             "description": ""
@@ -2345,7 +2361,46 @@
             "bearer": []
           }
         ],
-        "summary": "Upload media asset (multipart)",
+        "summary": "Upload single media asset (multipart)",
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/media/bulk": {
+      "post": {
+        "operationId": "MediaController_uploadMultiple",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "files": {
+                    "items": {
+                      "format": "binary",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload multiple media assets simultaneously (multipart)",
         "tags": [
           "Media"
         ]
