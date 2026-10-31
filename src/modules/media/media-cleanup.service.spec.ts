@@ -76,4 +76,24 @@ describe('MediaCleanupService', () => {
     expect(repo.delete).toHaveBeenCalledTimes(1);
     expect(repo.delete).toHaveBeenCalledWith('m-expired-1');
   });
+
+  it('rejects video upload with clear guidance to use embed', async () => {
+    const { MediaService } = await import('./media.service.js');
+    const mediaService = new MediaService(
+      repo as unknown as MediaRepository,
+      tokenProvider as unknown as HttpFileServiceTokenProvider,
+      configService as unknown as ConfigService,
+    );
+
+    const fakeVideoFile = {
+      mimetype: 'video/mp4',
+      originalname: 'demo.mp4',
+      size: 1024 * 1024,
+      buffer: Buffer.from('fake-video'),
+    } as Express.Multer.File;
+
+    await expect(
+      mediaService.upload(fakeVideoFile, 'user-123'),
+    ).rejects.toThrow(/Direct video uploads are not supported/);
+  });
 });
