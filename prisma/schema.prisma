@@ -225,6 +225,7 @@ model ContentEntry {
   @@index([siteId, contentTypeId, locale, status])
   @@index([siteId, status])
   @@index([contentTypeId])
+  @@index([slug])
   @@map("content_entries")
 }
 
