@@ -71,7 +71,7 @@ model SiteSetting {
   key    String // brandName, logoAssetId, themeJson, seoDefault
   value  Json
 
-  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, key])
   @@map("site_settings")
@@ -80,11 +80,11 @@ model SiteSetting {
 model SiteMember {
   id        String   @id @default(uuid())
   siteId    String
-  userId    String   // UMS user ID (klaim token sub, no DB FK)
-  roleKey   String   // cms:site-admin | cms:editor | cms:publisher
+  userId    String // UMS user ID (klaim token sub, no DB FK)
+  roleKey   String // cms:site-admin | cms:editor | cms:publisher
   createdAt DateTime @default(now())
 
-  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, userId])
   @@index([userId])
@@ -94,24 +94,24 @@ model SiteMember {
 model SiteLocale {
   id        String  @id @default(uuid())
   siteId    String
-  code      String  // id, en
+  code      String // id, en
   isDefault Boolean @default(false)
 
-  site      Site    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, code])
   @@map("site_locales")
 }
 
 model Page {
-  id                 String         @id @default(uuid())
+  id                 String     @id @default(uuid())
   siteId             String
-  route              String         // "/", "/about", "/contact"
+  route              String // "/", "/about", "/contact"
   title              String
-  status             PageStatus     @default(DRAFT)
-  isHome             Boolean        @default(false)
-  blocks             Json           @default("[]") // [{id, type, props}]
-  locale             String         @default("id")
+  status             PageStatus @default(DRAFT)
+  isHome             Boolean    @default(false)
+  blocks             Json       @default("[]") // [{id, type, props}]
+  locale             String     @default("id")
   scheduledPublishAt DateTime?
   publishedAt        DateTime?
   createdById        String
@@ -120,12 +120,12 @@ model Page {
   canonicalUrl       String?
   ogTitle            String?
   ogImageAssetId     String?
-  robots             String?        @default("index,follow")
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  robots             String?    @default("index,follow")
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
-  site               Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  revisions          PageRevision[]
+  site      Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  revisions PageRevision[]
 
   @@unique([siteId, route, locale])
   @@index([siteId, status, locale])
@@ -142,7 +142,7 @@ model PageRevision {
   createdById String
   createdAt   DateTime @default(now())
 
-  page        Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@unique([pageId, version])
   @@map("page_revisions")
@@ -150,13 +150,13 @@ model PageRevision {
 
 model BlockTemplate {
   id        String   @id @default(uuid())
-  siteId    String?  // null = template global platform
+  siteId    String? // null = template global platform
   key       String
   name      String
-  schema    Json     // input field definition utk UI
+  schema    Json // input field definition utk UI
   createdAt DateTime @default(now())
 
-  site      Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site? @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, key])
   @@map("block_templates")
@@ -174,7 +174,7 @@ model FormSubmission {
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
 
-  site      Site                 @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId, createdAt])
   @@index([siteId, status])
@@ -193,8 +193,8 @@ model ContentType {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  site        Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  entries     ContentEntry[]
+  site    Site?          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  entries ContentEntry[]
 
   @@map("content_types")
 }
@@ -216,58 +216,59 @@ model ContentEntry {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
-  site               Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  contentType        ContentType   @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
-  versions           ContentVersion[]
-  tags               ContentTag[]
+  site        Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contentType ContentType      @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+  versions    ContentVersion[]
+  tags        ContentTag[]
 
   @@unique([siteId, contentTypeId, slug, locale])
   @@index([siteId, contentTypeId, locale, status])
   @@index([siteId, status])
+  @@index([contentTypeId])
   @@map("content_entries")
 }
 
 model ContentVersion {
-  id          String       @id @default(uuid())
+  id          String   @id @default(uuid())
   entryId     String
   version     Int
   data        Json
   createdById String
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime @default(now())
 
-  entry       ContentEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entry ContentEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@unique([entryId, version])
   @@map("content_versions")
 }
 
 model Category {
-  id          String     @id @default(uuid())
-  siteId      String
-  key         String
-  name        String
-  parentId    String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id        String   @id @default(uuid())
+  siteId    String
+  key       String
+  name      String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  site        Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  children    Category[] @relation("CategoryHierarchy")
+  site     Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryHierarchy")
 
   @@unique([siteId, key])
   @@map("categories")
 }
 
 model Tag {
-  id        String       @id @default(uuid())
+  id        String   @id @default(uuid())
   siteId    String
   key       String
   name      String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  site      Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  entries   ContentTag[]
+  site    Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  entries ContentTag[]
 
   @@unique([siteId, key])
   @@map("tags")
@@ -277,8 +278,8 @@ model ContentTag {
   entryId String
   tagId   String
 
-  entry   ContentEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  tag     Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  entry ContentEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  tag   Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([entryId, tagId])
   @@unique([entryId, tagId])
@@ -286,26 +287,26 @@ model ContentTag {
 }
 
 model MediaAsset {
-  id                String    @id @default(uuid())
-  siteId            String
-  fileId            String    @unique
-  objectKey         String    @unique
-  originalName      String
-  mimeType          String
-  sizeBytes         Int
-  url               String?
-  altText           String?
-  width             Int?
-  height            Int?
-  focalPoint        Json?
-  uploadedById      String
-  isAttached        Boolean   @default(false)
-  attachedEntryId   String?
-  deletedAt         DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  siteId          String
+  fileId          String    @unique
+  objectKey       String    @unique
+  originalName    String
+  mimeType        String
+  sizeBytes       Int
+  url             String?
+  altText         String?
+  width           Int?
+  height          Int?
+  focalPoint      Json?
+  uploadedById    String
+  isAttached      Boolean   @default(false)
+  attachedEntryId String?
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  site              Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId, createdAt])
   @@index([isAttached, deletedAt])
