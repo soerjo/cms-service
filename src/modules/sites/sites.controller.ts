@@ -68,12 +68,6 @@ export class SitesController {
     return this.sitesService.deleteSite(key);
   }
 
-  @Get(':key/pages')
-  @ApiOperation({ summary: 'List all pages for a site' })
-  async findSitePages(@Param('key') key: string) {
-    return this.sitesService.findSitePages(key);
-  }
-
   @Get(':key/media')
   @ApiOperation({ summary: 'List all media assets for a site' })
   async findSiteMedia(@Param('key') key: string) {

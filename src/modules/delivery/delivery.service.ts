@@ -9,7 +9,6 @@ import { TagsRepository } from '../tags/tags.repository.js';
 import { MediaService } from '../media/media.service.js';
 import {
   ContentStatus,
-  PageStatus,
   SiteStatus,
   FormSubmissionStatus,
   type Site,
@@ -165,72 +164,6 @@ export class DeliveryService {
     return entry;
   }
 
-  async findPublishedPages(siteKey?: string, locale?: string) {
-    const site = await this.resolveSite(siteKey);
-
-    return this.prisma.page.findMany({
-      where: {
-        siteId: site.id,
-        status: PageStatus.PUBLISHED,
-        locale: locale || 'id',
-      },
-      select: {
-        id: true,
-        route: true,
-        title: true,
-        isHome: true,
-        blocks: true,
-        metaTitle: true,
-        metaDescription: true,
-        canonicalUrl: true,
-        ogTitle: true,
-        ogImageAssetId: true,
-        robots: true,
-        publishedAt: true,
-      },
-      orderBy: { isHome: 'desc' },
-    });
-  }
-
-  async findPublishedPageByRoute(
-    route: string,
-    siteKey?: string,
-    locale?: string,
-  ) {
-    const site = await this.resolveSite(siteKey);
-
-    const page = await this.prisma.page.findFirst({
-      where: {
-        siteId: site.id,
-        route,
-        status: PageStatus.PUBLISHED,
-        locale: locale || 'id',
-      },
-      select: {
-        id: true,
-        route: true,
-        title: true,
-        isHome: true,
-        blocks: true,
-        metaTitle: true,
-        metaDescription: true,
-        canonicalUrl: true,
-        ogTitle: true,
-        ogImageAssetId: true,
-        robots: true,
-        publishedAt: true,
-      },
-    });
-
-    if (!page) {
-      throw new NotFoundException(
-        `Published page with route '${route}' not found on site '${site.key}'`,
-      );
-    }
-
-    return page;
-  }
-
   async getCategories(siteKey?: string) {
     const site = await this.resolveSite(siteKey);
     return this.prisma.category.findMany({
@@ -285,41 +218,19 @@ export class DeliveryService {
         : `https://${site.key}.cms.local`);
     const cleanHost = host.replace(/\/+$/, '');
 
-    const [pages, entries] = await Promise.all([
-      this.prisma.page.findMany({
-        where: { siteId: site.id, status: PageStatus.PUBLISHED },
-        select: {
-          route: true,
-          isHome: true,
-          updatedAt: true,
-          publishedAt: true,
-        },
-      }),
-      this.prisma.contentEntry.findMany({
-        where: { siteId: site.id, status: ContentStatus.PUBLISHED },
-        select: { slug: true, updatedAt: true, publishedAt: true },
-      }),
-    ]);
+    const entries = await this.prisma.contentEntry.findMany({
+      where: { siteId: site.id, status: ContentStatus.PUBLISHED },
+      select: { slug: true, updatedAt: true, publishedAt: true },
+    });
 
-    const urlEntries: string[] = [];
-
-    for (const page of pages) {
-      const pagePath = page.route.startsWith('/')
-        ? page.route
-        : `/${page.route}`;
-      const loc = `${cleanHost}${pagePath}`;
-      const modDate = (page.updatedAt || page.publishedAt || new Date())
-        .toISOString()
-        .split('T')[0];
-      const priority = page.isHome ? '1.0' : '0.8';
-
-      urlEntries.push(`  <url>
-    <loc>${loc}</loc>
-    <lastmod>${modDate}</lastmod>
+    const urlEntries: string[] = [
+      `  <url>
+    <loc>${cleanHost}/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>${priority}</priority>
-  </url>`);
-    }
+    <priority>1.0</priority>
+  </url>`,
+    ];
 
     for (const entry of entries) {
       const loc = `${cleanHost}/content/${entry.slug}`;
