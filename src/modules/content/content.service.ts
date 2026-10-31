@@ -6,7 +6,7 @@ import {
   UpdateContentEntryDto,
   UpdateContentTagsDto,
 } from './dto/update-content-entry.dto.js';
-import { validateContentData } from './content-validation.util.js';
+import { sanitizeAndValidateContentData } from './content-validation.util.js';
 import { ContentStatus } from '@prisma/client';
 import { MediaRepository } from '../media/media.repository.js';
 import { extractMediaReferences } from '../media/media-extractor.util.js';
@@ -31,20 +31,20 @@ export class ContentService {
   async create(dto: CreateContentEntryDto, userId: string) {
     const contentType = await this.resolveContentType(dto.contentTypeId);
 
-    // Validate data against field defs
-    validateContentData(
+    // Validate and sanitize data against field defs
+    const sanitizedData = sanitizeAndValidateContentData(
       contentType.fields as unknown as import('./content-validation.util.js').FieldDefinition[],
       dto.data,
     );
 
-    const entry = await this.contentRepo.create(dto, userId, contentType.id);
-
-    // Create initial version 1
-    const latestVer = await this.contentRepo.getLatestVersionNumber(entry.id);
-    await this.contentRepo.update(entry.id, dto.data, latestVer + 1, userId);
+    const entry = await this.contentRepo.create(
+      { ...dto, data: sanitizedData },
+      userId,
+      contentType.id,
+    );
 
     // Verify & attach media references used in entry data
-    const mediaRefs = extractMediaReferences(dto.data);
+    const mediaRefs = extractMediaReferences(sanitizedData);
     if (mediaRefs.length > 0) {
       await this.mediaRepo.markAttached(mediaRefs, entry.id);
     }
@@ -78,30 +78,24 @@ export class ContentService {
     return this.contentRepo.findById(id);
   }
 
-  async update(id: string, dto: UpdateContentEntryDto, userId: string) {
+  async update(id: string, dto: UpdateContentEntryDto) {
     const existing = await this.contentRepo.findById(id);
     const contentType = await this.contentTypesRepo.findById(
       existing.contentTypeId,
     );
 
-    const mergedData = dto.data
+    let mergedData = dto.data
       ? { ...(existing.data as Record<string, unknown>), ...dto.data }
       : (existing.data as Record<string, unknown>);
 
     if (dto.data) {
-      validateContentData(
+      mergedData = sanitizeAndValidateContentData(
         contentType.fields as unknown as import('./content-validation.util.js').FieldDefinition[],
         mergedData,
       );
     }
 
-    const latestVer = await this.contentRepo.getLatestVersionNumber(id);
-    const updated = await this.contentRepo.update(
-      id,
-      mergedData,
-      latestVer + 1,
-      userId,
-    );
+    const updated = await this.contentRepo.update(id, mergedData);
 
     // Verify & attach media references used in updated entry data
     const mediaRefs = extractMediaReferences(mergedData);
@@ -135,38 +129,6 @@ export class ContentService {
   async archive(id: string) {
     await this.contentRepo.findById(id);
     return this.contentRepo.updateStatus(id, ContentStatus.ARCHIVED);
-  }
-
-  async getVersions(id: string) {
-    return this.contentRepo.getVersions(id);
-  }
-
-  async getVersionByNumber(id: string, versionNumber: number) {
-    return this.contentRepo.getVersionByNumber(id, versionNumber);
-  }
-
-  async restoreVersion(id: string, versionNumber: number, userId: string) {
-    const version = await this.contentRepo.getVersionByNumber(
-      id,
-      versionNumber,
-    );
-    const existing = await this.contentRepo.findById(id);
-    const contentType = await this.contentTypesRepo.findById(
-      existing.contentTypeId,
-    );
-
-    validateContentData(
-      contentType.fields as unknown as import('./content-validation.util.js').FieldDefinition[],
-      version.data,
-    );
-
-    const latestVer = await this.contentRepo.getLatestVersionNumber(id);
-    return this.contentRepo.update(
-      id,
-      version.data as Record<string, unknown>,
-      latestVer + 1,
-      userId,
-    );
   }
 
   async setTags(id: string, dto: UpdateContentTagsDto) {
